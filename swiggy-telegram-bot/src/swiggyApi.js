@@ -125,22 +125,22 @@ const INSTAMART_CATEGORIES = {
 };
 
 const NOICE_SUB_COLLECTIONS = [
-  { id: '363283', name: 'Namkeen' },
-  { id: '362606', name: 'Dips' },
-  { id: '363280', name: 'Dry Fruit Snacks' },
-  { id: '391405', name: 'Cakes & Cookies' },
-  { id: '272557', name: 'Veg Instant Snacks' },
-  { id: '285297', name: 'Non Veg Instant Snacks' },
-  { id: '290645', name: 'Protein Bars' },
-  { id: '362593', name: 'Beverages' },
-  { id: '363268', name: 'Popcorn' },
-  { id: '232051', name: 'Atta & Flours' },
-  { id: '359959', name: 'Ghee & Cooking Oils' },
-  { id: '359969', name: 'Dals & Pulses' },
-  { id: '362598', name: 'Dry Fruits' },
-  { id: '362601', name: 'Spices & Seasonings' },
-  { id: '362604', name: 'Breakfast Cereals' },
-  { id: '362608', name: 'Sweets & Desserts' }
+  { id: '408822', name: 'Top Deals' },
+  { id: '377503', name: 'Dairy, Bread Eggs & More' },
+  { id: '377513', name: 'Chocolates & Ice Creams' },
+  { id: '377515', name: 'Munchies' },
+  { id: '395522', name: 'Atta & Ghee' },
+  { id: '377517', name: 'Beverages' },
+  { id: '377520', name: 'Spreads & Dips' },
+  { id: '377510', name: 'Cakes & Cookies' },
+  { id: '377514', name: 'Indian Sweets' },
+  { id: '377516', name: 'Chocolates' },
+  { id: '365176', name: 'Dry Fruits' },
+  { id: '377519', name: 'Veg Frozen Food' },
+  { id: '285297', name: 'Non Veg Frozen Food' },
+  { id: '377521', name: 'Chutneys & Pickles' },
+  { id: '359943', name: 'Coffee' },
+  { id: '290645', name: 'Protein Bars' }
 ];
 
 // Browser-backed scraper to reliably bypass Cloudflare / AWS WAF Challenge
@@ -200,7 +200,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
 
           while (keepPaging && pageCount < 3) {
             pageCount++;
-            const url = `https://instamart.in/api/instamart/campaign/listing/v2?collectionId=${coll.id}&custom_back=true&layoutId=29794&offset=${offset}&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+            const url = `https://instamart.in/api/instamart/collection/items?collectionId=${coll.id}&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${offset}&serviceLine=INSTAMART`;
             try {
               const res = await fetch(url, {
                 headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
@@ -235,7 +235,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         if (failedQueue.length > 0) {
           await pSleep(2000);
           for (const item of failedQueue) {
-            const url = `https://instamart.in/api/instamart/campaign/listing/v2?collectionId=${item.coll.id}&custom_back=true&layoutId=29794&offset=${item.offset}&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+            const url = `https://instamart.in/api/instamart/collection/items?collectionId=${item.coll.id}&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${item.offset}&serviceLine=INSTAMART`;
             try {
               const res = await fetch(url, {
                 headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
@@ -517,35 +517,48 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
   }
 }
 
-// Direct fetch fallback for Noice
-async function fetchNoiceDealsDirect(storeConfig, maxPages = 6) {
+// Direct fetch fallback for Noice across all 16 collections
+async function fetchNoiceDealsDirect(storeConfig) {
   const { sid, pid, secid } = storeConfig;
   const resultMap = new Map();
-  let offset = 0;
 
-  for (let page = 0; page < maxPages; page++) {
-    const url = `https://instamart.in/api/instamart/campaign/mxn/v2?layoutId=13558&offset=${offset}&customerPage=STORES_MxN_3&metaInfo=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
-    const json = await apiRequestSafe(url, 'GET');
-    if (!json?.data) break;
+  for (let i = 0; i < NOICE_SUB_COLLECTIONS.length; i++) {
+    const coll = NOICE_SUB_COLLECTIONS[i];
+    let offset = 0;
+    let keepPaging = true;
+    let pageCount = 0;
 
-    const pageItems = parseItemsFromData(json);
-    for (const item of pageItems) {
-      const existing = resultMap.get(item.name);
-      if (!existing || item.price < existing.price) {
-        resultMap.set(item.name, item);
+    while (keepPaging && pageCount < 2) {
+      pageCount++;
+      const url = `https://instamart.in/api/instamart/collection/items?collectionId=${coll.id}&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${offset}&serviceLine=INSTAMART`;
+      const json = await apiRequestSafe(url, 'GET');
+      if (!json?.data) break;
+
+      const pageItems = parseItemsFromData(json);
+      for (const item of pageItems) {
+        item.category = 'The NOICE Store';
+        item.subCategory = coll.name;
+        item.dealType = 'noice';
+        const existing = resultMap.get(item.name);
+        if (!existing || item.price < existing.price) {
+          resultMap.set(item.name, item);
+        }
+      }
+
+      const nextOffset = json.data?.pageOffset?.nextOffset;
+      if (nextOffset !== null && nextOffset !== undefined && nextOffset !== '' && Number(nextOffset) > offset) {
+        offset = Number(nextOffset);
+        await sleep(250);
+      } else {
+        keepPaging = false;
       }
     }
-
-    const nextOffset = json.data?.pageOffset?.nextOffset;
-    if (nextOffset !== null && nextOffset !== undefined && nextOffset !== '' && Number(nextOffset) > offset) {
-      offset = Number(nextOffset);
-      await sleep(300);
-    } else {
-      break;
-    }
+    await sleep(200);
   }
 
-  return Array.from(resultMap.values());
+  const allItems = Array.from(resultMap.values());
+  allItems.sort((a, b) => b.discount - a.discount);
+  return allItems;
 }
 
 // Fallback direct HTTP API client

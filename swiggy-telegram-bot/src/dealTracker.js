@@ -27,6 +27,7 @@ function loadCache(campaignKey = 'default') {
     lastDate: null,
     lastRunId: null,
     lastRunHour: null,
+    lastCycleId: null,
     items: {},
     lastRuns: {}
   };
@@ -42,14 +43,34 @@ function saveCache(cache, campaignKey = 'default') {
   }
 }
 
-function getIstContext(overrideDate = null, overrideHour = null) {
+function getIstWeekStart(istDate, resetDay = 1) {
+  const day = istDate.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const diffDays = (day - resetDay + 7) % 7;
+  const start = new Date(istDate.getTime() - diffDays * 24 * 60 * 60 * 1000);
+  return start.toISOString().slice(0, 10);
+}
+
+function getIstContext(overrideDate = null, overrideHour = null, refreshCycle = 'daily', resetDay = 1) {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000;
-  const istDate = new Date(now.getTime() + istOffset);
+  let istDate;
+  if (overrideDate) {
+    const h = overrideHour !== null ? String(overrideHour).padStart(2, '0') : '00';
+    istDate = new Date(`${overrideDate}T${h}:00:00.000Z`);
+  } else {
+    istDate = new Date(now.getTime() + istOffset);
+  }
   const dateStr = overrideDate || istDate.toISOString().slice(0, 10); // "YYYY-MM-DD"
   const hour = overrideHour !== null ? overrideHour : istDate.getUTCHours(); // 0 to 23
   const runId = `${dateStr}-${hour}`;
-  return { dateStr, hour, runId, now: now.getTime() };
+
+  let cycleId = `D-${dateStr}`;
+  if (refreshCycle === 'weekly') {
+    const weekStartStr = getIstWeekStart(istDate, resetDay);
+    cycleId = `W-${weekStartStr}`;
+  }
+
+  return { dateStr, hour, runId, cycleId, now: now.getTime() };
 }
 
 function normalizeProductName(name) {
@@ -104,10 +125,16 @@ function getCanonicalItemKey(item) {
 function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', options = {}) {
   const cache = loadCache(campaignKey);
   const alertList = [];
-  const { dateStr, hour, runId, now } = getIstContext(options.overrideDate, options.overrideHour);
+  const refreshCycle = options.refreshCycle || 'daily';
+  const resetDay = options.weeklyResetDay !== undefined ? options.weeklyResetDay : 1;
+  const { dateStr, hour, runId, cycleId, now } = getIstContext(options.overrideDate, options.overrideHour, refreshCycle, resetDay);
 
-  // First run of the day: 10:00 AM IST or calendar day change
-  const isFirstRunOfDay = (cache.lastDate !== dateStr) || (hour === 10 && cache.lastRunHour !== 10);
+  // Determine if this run is the start of a new cycle:
+  // - Daily: Calendar date change (e.g. at 12:00 AM midnight) or 10:00 AM morning run
+  // - Weekly: Cycle ID rollover (e.g. on resetDay at 12:00 AM midnight IST) or first run with cycle tracking
+  const isFirstRunOfCycle = (cache.lastCycleId !== cycleId)
+    || (!cache.lastCycleId && cache.lastDate !== dateStr)
+    || (refreshCycle === 'daily' && hour === 10 && cache.lastRunHour !== 10);
   const lastRunId = cache.lastRunId;
 
   const seenInCurrentRun = new Map();
@@ -155,29 +182,32 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       (item.price < prev.lastAlertedPrice && item.discount >= (prevDisc + 5))
     );
     const wasInPreviousRun = prev && Boolean(lastRunId) && (prev.lastSeenRunId === lastRunId);
-    const alreadyAlertedToday = prev && (prev.lastAlertedDate === dateStr);
+    const alreadyAlertedInCycle = prev && (
+      (prev.lastAlertedCycle && prev.lastAlertedCycle === cycleId) ||
+      (!prev.lastAlertedCycle && refreshCycle === 'daily' && prev.lastAlertedDate === dateStr)
+    );
 
     let shouldAlert = false;
     let alertType = 'NEW_DEAL';
 
-    if (isFirstRunOfDay) {
-      // First run of the day (10:00 AM IST or calendar date change): alert all qualified deals
+    if (isFirstRunOfCycle) {
+      // First run of the cycle (daily reset or weekly reset on resetDay at 12:00 AM IST)
       shouldAlert = true;
-      alertType = prev ? 'DAILY_DROP' : 'NEW_DEAL';
-    } else if (!prev || !alreadyAlertedToday) {
-      // Brand new item or first time meeting criteria today
+      alertType = prev ? (refreshCycle === 'weekly' ? 'WEEKLY_REFRESH' : 'DAILY_DROP') : 'NEW_DEAL';
+    } else if (!prev || !alreadyAlertedInCycle) {
+      // Brand new item or first time meeting criteria in this cycle
       shouldAlert = true;
       alertType = 'NEW_DEAL';
     } else if (isPriceDrop) {
-      // Price dropped significantly lower than last alerted price today
+      // Price dropped significantly lower than last alerted price today/this cycle
       shouldAlert = true;
       alertType = 'PRICE_DROP';
-    } else if (lastRunId && !wasInPreviousRun) {
-      // Item was absent in the immediately preceding run and came back after a few hours
+    } else if (lastRunId && !wasInPreviousRun && refreshCycle !== 'weekly') {
+      // Item was absent in the immediately preceding run and came back after a few hours (daily cycles)
       shouldAlert = true;
       alertType = 'BACK_IN_STOCK';
     } else {
-      // Consecutively present at the same price: suppress duplicate hourly alert
+      // Consecutively present at the same price or already alerted in this weekly cycle: suppress duplicate alert
       shouldAlert = false;
     }
 
@@ -205,6 +235,7 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
         lastAlertedDiscount: item.discount,
         lastAlertedDate: dateStr,
         lastAlertedHour: hour,
+        lastAlertedCycle: cycleId,
         lastSeenRunId: runId,
         firstSeen: prev ? prev.firstSeen : now,
         lastSeen: now
@@ -224,14 +255,17 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
 
   const totalMetCriteria = items.filter(it => it.discount >= (typeof minDiscount === 'number' ? minDiscount : 70)).length;
   const suppressedCount = Math.max(0, totalMetCriteria - alertList.length);
-  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount}`);
+  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount} (Cycle: ${refreshCycle}/${cycleId})`);
 
   // Update run metadata
   cache.lastDate = dateStr;
   cache.lastRunHour = hour;
   cache.lastRunId = runId;
+  cache.lastCycleId = cycleId;
   cache.lastRuns[runId] = {
     timestamp: now,
+    cycleId,
+    refreshCycle,
     totalItems: items.length,
     alertsFound: alertList.length,
     suppressedCount

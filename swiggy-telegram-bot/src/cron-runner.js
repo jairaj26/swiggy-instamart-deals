@@ -105,8 +105,13 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
   }
 
   if (items.length > 0) {
-    const alerts = findAlertWorthyDeals(items, threshold, campaignKey);
-    console.log(`[${campaignKey}] Found ${alerts.length} alert-worthy deals (Discount ≥ ${threshold}%).`);
+    const refreshCycle = campaignCfg.refreshCycle || 'daily';
+    const weeklyResetDay = campaignCfg.weeklyResetDay !== undefined ? campaignCfg.weeklyResetDay : 1;
+    const alerts = findAlertWorthyDeals(items, threshold, campaignKey, {
+      refreshCycle,
+      weeklyResetDay
+    });
+    console.log(`[${campaignKey}] Found ${alerts.length} alert-worthy deals (Discount ≥ ${threshold}% | Cycle: ${refreshCycle}).`);
     if (bot && chatId && alerts.length > 0) {
       await sendBatchAlerts(bot, chatId, alerts, {
         timeString,
@@ -187,7 +192,7 @@ async function main() {
   // 1. Worker 1: Daily Essentials & Fresh
   if (runEssentials) {
     const cfg = campaigns.essentials || campaigns.essentialAisles || {};
-    const threshold = parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || cfg.minDiscount || minDiscount || 70;
+    const threshold = parseInt(process.env.ESSENTIALS_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 60;
     await runSubcategoryCampaign('essentials', cfg, {
       bot,
       chatId,
@@ -200,7 +205,7 @@ async function main() {
   // 2. Worker 2: Sweets, Snacks & Treats
   if (runTreats) {
     const cfg = campaigns.treats || {};
-    const threshold = parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || cfg.minDiscount || minDiscount || 70;
+    const threshold = parseInt(process.env.TREATS_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 70;
     await runSubcategoryCampaign('treats', cfg, {
       bot,
       chatId,
@@ -213,7 +218,7 @@ async function main() {
   // 3. Worker 3: Lifestyle, Home & Electronics
   if (runLifestyle) {
     const cfg = campaigns.lifestyle || {};
-    const threshold = parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || cfg.minDiscount || minDiscount || 70;
+    const threshold = parseInt(process.env.LIFESTYLE_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 85;
     await runSubcategoryCampaign('lifestyle', cfg, {
       bot,
       chatId,
@@ -229,7 +234,10 @@ async function main() {
     try {
       const items = await fetchWednesdayBazaarDeals(storeConfig);
       console.log(`[Bazaar] Scraped ${items.length} items.`);
-      const alerts = findAlertWorthyDeals(items, minDiscount, 'wednesdayBazaar');
+      const alerts = findAlertWorthyDeals(items, minDiscount, 'wednesdayBazaar', {
+        refreshCycle: 'weekly',
+        weeklyResetDay: 3
+      });
       console.log(`[Bazaar] Found ${alerts.length} new/improved deals >= ${minDiscount}%.`);
       if (bot && chatId && alerts.length > 0) {
         await sendBatchAlerts(bot, chatId, alerts, { timeString, workerInfo: '🎉 Wednesday Bazaar' });
@@ -239,14 +247,19 @@ async function main() {
     }
   }
 
-  // 5. Legacy NOICE Scan
+  // 5. The NOICE Store Scan
   if (runNoice) {
-    console.log('\n--- Running Legacy NOICE Store Scan ---');
+    console.log('\n--- Running The NOICE Store Scan ---');
+    const cfg = campaigns.noice || {};
+    const noiceThreshold = parseInt(process.env.NOICE_MIN_DISCOUNT, 10) || cfg.minDiscount || minDiscount || 50;
     try {
       const items = await fetchNoiceDeals(storeConfig);
       console.log(`[NOICE] Scraped ${items.length} items.`);
-      const alerts = findAlertWorthyDeals(items, minDiscount, 'noice');
-      console.log(`[NOICE] Found ${alerts.length} new/improved deals >= ${minDiscount}%.`);
+      const alerts = findAlertWorthyDeals(items, noiceThreshold, 'noice', {
+        refreshCycle: cfg.refreshCycle || 'weekly',
+        weeklyResetDay: cfg.weeklyResetDay !== undefined ? cfg.weeklyResetDay : 1
+      });
+      console.log(`[NOICE] Found ${alerts.length} new/improved deals >= ${noiceThreshold}%.`);
       if (bot && chatId && alerts.length > 0) {
         await sendBatchAlerts(bot, chatId, alerts, { timeString, workerInfo: '✨ The NOICE Store' });
       }

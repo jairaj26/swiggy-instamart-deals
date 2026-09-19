@@ -11,7 +11,8 @@
       "tag": "🌾",
       "type": "subcategory",
       "enabled": true,
-      "minDiscount": 70,
+      "minDiscount": 60,
+      "refreshCycle": "daily",
       "subcategories": [
         {
           "category": "Atta, Rice and Dal",
@@ -243,6 +244,7 @@
       "type": "subcategory",
       "enabled": true,
       "minDiscount": 70,
+      "refreshCycle": "daily",
       "subcategories": [
         {
           "category": "Chips and Namkeens",
@@ -497,7 +499,9 @@
       "tag": "🛍️",
       "type": "subcategory",
       "enabled": true,
-      "minDiscount": 70,
+      "minDiscount": 85,
+      "refreshCycle": "weekly",
+      "weeklyResetDay": 1,
       "subcategories": [
         {
           "category": "Home and Kitchen",
@@ -702,6 +706,34 @@
       "enabled": true,
       "cron": "2 0 * * 3",
       "description": "Every Wednesday at 12:02 AM"
+    },
+    "noice": {
+      "name": "The NOICE Store",
+      "tag": "✨",
+      "type": "collection",
+      "layoutId": "13558",
+      "minDiscount": 50,
+      "refreshCycle": "weekly",
+      "weeklyResetDay": 1,
+      "enabled": true,
+      "subcategories": [
+        { "name": "Top Deals", "id": "408822", "isCollection": true },
+        { "name": "Dairy, Bread Eggs & More", "id": "377503", "isCollection": true },
+        { "name": "Chocolates & Ice Creams", "id": "377513", "isCollection": true },
+        { "name": "Munchies", "id": "377515", "isCollection": true },
+        { "name": "Atta & Ghee", "id": "395522", "isCollection": true },
+        { "name": "Beverages", "id": "377517", "isCollection": true },
+        { "name": "Spreads & Dips", "id": "377520", "isCollection": true },
+        { "name": "Cakes & Cookies", "id": "377510", "isCollection": true },
+        { "name": "Indian Sweets", "id": "377514", "isCollection": true },
+        { "name": "Chocolates", "id": "377516", "isCollection": true },
+        { "name": "Dry Fruits", "id": "365176", "isCollection": true },
+        { "name": "Veg Frozen Food", "id": "377519", "isCollection": true },
+        { "name": "Non Veg Frozen Food", "id": "285297", "isCollection": true },
+        { "name": "Chutneys & Pickles", "id": "377521", "isCollection": true },
+        { "name": "Coffee", "id": "359943", "isCollection": true },
+        { "name": "Protein Bars", "id": "290645", "isCollection": true }
+      ]
     }
   }
 }
