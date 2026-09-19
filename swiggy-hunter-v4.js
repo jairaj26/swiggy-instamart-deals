@@ -30,38 +30,24 @@ javascript:(async () => {
     "The NOICE Store": {
         "cName": "The NOICE Store",
         "section": "Featured",
-        "isCampaign": true,
-        "campaignType": "mxn",
-        "layoutId": "13558",
+        "campaignType": "collection",
         "subs": [
-            {
-                "name": "Dairy, Curd & Paneer",
-                "id": "dairy"
-            },
-            {
-                "name": "Fresh Breads & Bakery",
-                "id": "bakery"
-            },
-            {
-                "name": "Snacks, Chikki & Namkeens",
-                "id": "snacks"
-            },
-            {
-                "name": "Cookies & Biscuits",
-                "id": "cookies"
-            },
-            {
-                "name": "Atta & Flours",
-                "id": "atta"
-            },
-            {
-                "name": "Ice Creams & Sweets",
-                "id": "sweets"
-            },
-            {
-                "name": "Juices, Kombucha & Coffee",
-                "id": "beverages"
-            }
+            { "name": "Top Deals", "id": "408822", "isCollection": true },
+            { "name": "Dairy, Bread Eggs & More", "id": "377503", "isCollection": true },
+            { "name": "Chocolates & Ice Creams", "id": "377513", "isCollection": true },
+            { "name": "Munchies", "id": "377515", "isCollection": true },
+            { "name": "Atta & Ghee", "id": "395522", "isCollection": true },
+            { "name": "Beverages", "id": "377517", "isCollection": true },
+            { "name": "Spreads & Dips", "id": "377520", "isCollection": true },
+            { "name": "Cakes & Cookies", "id": "377510", "isCollection": true },
+            { "name": "Indian Sweets", "id": "377514", "isCollection": true },
+            { "name": "Chocolates", "id": "377516", "isCollection": true },
+            { "name": "Dry Fruits", "id": "365176", "isCollection": true },
+            { "name": "Veg Frozen Food", "id": "377519", "isCollection": true },
+            { "name": "Non Veg Frozen Food", "id": "285297", "isCollection": true },
+            { "name": "Chutneys & Pickles", "id": "377521", "isCollection": true },
+            { "name": "Coffee", "id": "359943", "isCollection": true },
+            { "name": "Protein Bars", "id": "290645", "isCollection": true }
         ]
     },
     "Wednesday Bazaar": {
@@ -2467,8 +2453,12 @@ javascript:(async () => {
     let url = '';
     let body = null;
     let method = 'GET';
+    const isColl = Boolean(sub.isCollection || catObj.campaignType === 'collection');
 
-    if (sub.id) {
+    if (isColl) {
+      method = 'GET';
+      url = `https://www.swiggy.com/api/instamart/collection/items?collectionId=${sub.id}&isMonetised=true&storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&offset=0&serviceLine=INSTAMART`;
+    } else if (sub.id) {
       method = 'POST';
       url = `https://www.swiggy.com/api/instamart/category-listing/filter/v2?storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
       body = {
@@ -2507,18 +2497,28 @@ javascript:(async () => {
         : 150;
       await sleep(p2Delay);
 
-      const url2 = `https://www.swiggy.com/api/instamart/category-listing/filter/v2?storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&pageNo=1&offset=1&page_name=category_listing_filter`;
-      const body2 = {
-        categoryName: catObj.cName,
-        filterName: sub.name,
-        filterId: sub.id,
-        taxonomyType: catObj.tType || 'taxonomy 5',
-        items_offset: String(CFG.itemsPerPage),
-        facets: [],
-        sortAttribute: 'discountPercentHighToLow'
-      };
+      let url2 = '';
+      let body2 = null;
+      let method2 = 'GET';
 
-      const data2 = await apiRequestSafe(url2, 'POST', body2, isRetry);
+      if (isColl) {
+        method2 = 'GET';
+        url2 = `https://www.swiggy.com/api/instamart/collection/items?collectionId=${sub.id}&isMonetised=true&storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&offset=1&serviceLine=INSTAMART`;
+      } else {
+        method2 = 'POST';
+        url2 = `https://www.swiggy.com/api/instamart/category-listing/filter/v2?storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&pageNo=1&offset=1&page_name=category_listing_filter`;
+        body2 = {
+          categoryName: catObj.cName,
+          filterName: sub.name,
+          filterId: sub.id,
+          taxonomyType: catObj.tType || 'taxonomy 5',
+          items_offset: String(CFG.itemsPerPage),
+          facets: [],
+          sortAttribute: 'discountPercentHighToLow'
+        };
+      }
+
+      const data2 = await apiRequestSafe(url2, method2, body2, isRetry);
       if (data2 && data2.data) {
         const parsed2 = parseCardsVariations(data2, catKey, catObj, sub, storeIds, resultMap);
         scanned += parsed2.scanned;
@@ -2595,15 +2595,22 @@ javascript:(async () => {
     }
 
     #ih4-panel {
-      position: fixed; top: 0; right: 0; height: 100vh; width: 450px; max-width: 96vw;
+      position: fixed; top: 0; right: 0;
+      height: 100vh; height: 100dvh; max-height: -webkit-fill-available;
+      width: 450px; max-width: 96vw;
       background: #fff; box-shadow: -8px 0 35px rgba(15,23,42,.15); border-left: 1px solid #e2e8f0;
       display: flex; flex-direction: column; transform: translateX(100%); transition: transform .22s ease;
-      z-index: 2147483001;
+      z-index: 2147483001; overflow: hidden;
     }
     #ih4-panel.open { transform: translateX(0); }
-    @media (max-width: 640px) { #ih4-panel { width: 100%; max-width: 100%; } }
+    @media (max-width: 640px) {
+      #ih4-panel {
+        width: 100%; max-width: 100%;
+        height: 100dvh; height: 100vh; max-height: -webkit-fill-available;
+      }
+    }
 
-    #ih4-panel-head { padding: 18px 20px 14px; border-bottom: 1px solid #f1f5f9; position: relative; }
+    #ih4-panel-head { padding: 18px 20px 14px; border-bottom: 1px solid #f1f5f9; position: relative; flex-shrink: 0; }
     #ih4-panel-head .ih4-title { font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; }
     #ih4-panel-head .ih4-badge { font-size: 10.5px; padding: 2px 7px; border-radius: 10px; background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; font-weight: 700; letter-spacing: .02em; }
     #ih4-panel-head .ih4-sub { font-size: 12px; color: #64748b; margin-top: 3px; line-height: 1.4; }
@@ -2613,15 +2620,8 @@ javascript:(async () => {
     }
     #ih4-close:hover { background: #e2e8f0; color: #0f172a; }
 
-    #ih4-search-row { padding: 8px 16px; background: #fff; border-bottom: 1px solid #f1f5f9; }
-    #ih4-search-input {
-      width: 100%; padding: 7px 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12.5px;
-      background: #f8fafc; color: #0f172a; outline: none; transition: border-color .15s;
-    }
-    #ih4-search-input:focus { border-color: #fc8019; background: #fff; }
-
     #ih4-section-tabs {
-      display: flex; gap: 6px; padding: 8px 16px; background: #fff; border-bottom: 1px solid #f1f5f9; overflow-x: auto; scrollbar-width: none;
+      display: flex; gap: 6px; padding: 8px 16px; background: #fff; border-bottom: 1px solid #f1f5f9; overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
     }
     #ih4-section-tabs::-webkit-scrollbar { display: none; }
     .ih4-sec-tab {
@@ -2631,7 +2631,10 @@ javascript:(async () => {
     .ih4-sec-tab:hover { border-color: #cbd5e1; color: #0f172a; }
     .ih4-sec-tab.active { background: #0f172a; color: #fff; border-color: #0f172a; }
 
-    #ih4-list { flex: 1; overflow-y: auto; padding: 12px 14px; }
+    #ih4-list {
+      flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 12px 14px;
+    }
 
     .ih4-cat-card {
       border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 10px; transition: border-color .15s ease, background .15s ease;
@@ -2646,17 +2649,6 @@ javascript:(async () => {
     }
     .ih4-cat-card.selected .ih4-cat-main { background: #fff7ed; }
     .ih4-cat-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-    
-    .ih4-cat-radio {
-      width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #cbd5e1; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center; transition: all .12s ease; background: #fff; cursor: pointer;
-    }
-    .ih4-radio-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #fc8019; opacity: 0; transform: scale(0.6);
-      transition: all .12s ease;
-    }
-    .ih4-cat-card.selected .ih4-cat-radio { border-color: #fc8019; }
-    .ih4-cat-card.selected .ih4-radio-dot { opacity: 1; transform: scale(1); }
     
     .ih4-cat-name { font-size: 13.5px; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ih4-cat-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -2709,7 +2701,10 @@ javascript:(async () => {
     }
     .ih4-sub-icon { font-size: 11px; line-height: 1; }
 
-    #ih4-panel-foot { padding: 16px 20px; border-top: 1px solid #f1f5f9; background: #fff; }
+    #ih4-panel-foot {
+      padding: 14px 18px max(18px, env(safe-area-inset-bottom, 18px));
+      border-top: 1px solid #f1f5f9; background: #fff; flex-shrink: 0;
+    }
     #ih4-summary-line { font-size: 12.5px; color: #64748b; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     #ih4-fetch {
       width: 100%; padding: 12px; border-radius: 10px; border: none; background: #0f172a; color: #fff;
@@ -2745,10 +2740,6 @@ javascript:(async () => {
         </button>
       </div>
 
-      <div id="ih4-search-row">
-        <input type="text" id="ih4-search-input" placeholder="Search categories or subcategories (e.g. Atta, Ghee)..." />
-      </div>
-
       <div id="ih4-section-tabs">
         ${CFG.sections.map((sec, i) => '<button class="ih4-sec-tab' + (i === 0 ? ' active' : '') + '" data-sec="' + sec + '">' + sec + '</button>').join('')}
       </div>
@@ -2782,7 +2773,6 @@ javascript:(async () => {
   const catsCountEl = root.querySelector('#ih4-cats-count');
   const openResultsLink = root.querySelector('#ih4-open-results-link');
   const secTabs = root.querySelectorAll('.ih4-sec-tab');
-  const searchInput = root.querySelector('#ih4-search-input');
   const storeBadgeEl = root.querySelector('#ih4-store-pod-badge');
   const storeTextEl = root.querySelector('#ih4-store-pod-text');
   const storeDotEl = root.querySelector('#ih4-store-dot');
@@ -2829,7 +2819,6 @@ javascript:(async () => {
   let selectedSubs = new Set();
   const expandedCats = new Set(); // Categories currently expanded by the user
   let currentSection = 'All';
-  let filterQuery = '';
 
   function getCleanCatName(catKey) {
     return catKey.replace(/^\S+\s/, '');
@@ -2875,7 +2864,6 @@ javascript:(async () => {
   function renderCategories() {
     listEl.innerHTML = '';
     let matchCount = 0;
-    const q = filterQuery.trim().toLowerCase();
 
     for (const [catKey, catObj] of Object.entries(CFG.cats)) {
       if (currentSection !== 'All' && catObj.section !== currentSection) continue;
@@ -2883,52 +2871,27 @@ javascript:(async () => {
       const cleanCatName = getCleanCatName(catKey);
       const subs = catObj.subs || [];
 
-      // Filter by search query if typed
-      let catMatch = false;
-      let subMatch = false;
-      if (q) {
-        catMatch = cleanCatName.toLowerCase().includes(q);
-        subMatch = subs.some(s => s.name.toLowerCase().includes(q));
-        if (!catMatch && !subMatch) continue;
-      }
-
       matchCount++;
       const isSelectedCat = selectedCat === catKey;
       const countSelected = isSelectedCat ? selectedSubs.size : 0;
       const totalSubs = subs.length;
-      const isExpanded = expandedCats.has(catKey) || (Boolean(q) && (catMatch || subMatch));
+      const isExpanded = expandedCats.has(catKey);
 
       const card = document.createElement('div');
-      card.className = `ih4-cat-card${isSelectedCat ? ' selected' : ''}${isExpanded ? ' expanded' : ''}`;
+      card.className = `ih4-cat-card${isSelectedCat && countSelected > 0 ? ' selected' : ''}${isExpanded ? ' expanded' : ''}`;
 
-      // Header with Radio Button, Title, Badge & Expand Chevron
+      // Header with Title, Badge & Expand Chevron (No Radio Button)
       const header = document.createElement('div');
       header.className = 'ih4-cat-main';
       header.innerHTML = `
         <div class="ih4-cat-left">
-          <span class="ih4-cat-radio" title="Select all aisles in ${cleanCatName}"><span class="ih4-radio-dot"></span></span>
           <span class="ih4-cat-name">${catKey}</span>
         </div>
         <div class="ih4-cat-right">
-          <span class="ih4-cat-badge">${isSelectedCat ? (`${countSelected}/${totalSubs} selected`) : (`${totalSubs} aisles`)}</span>
+          <span class="ih4-cat-badge">${isSelectedCat && countSelected > 0 ? (`${countSelected}/${totalSubs} selected`) : (`${totalSubs} aisles`)}</span>
           <span class="ih4-chevron">▼</span>
         </div>
       `;
-
-      // Clicking the radio button: selects/deselects whole category and expands
-      header.querySelector('.ih4-cat-radio').addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (selectedCat === catKey && selectedSubs.size === totalSubs) {
-          selectedCat = null;
-          selectedSubs.clear();
-        } else {
-          selectedCat = catKey;
-          selectedSubs = new Set(subs.map(s => s.id || s.name));
-          expandedCats.add(catKey);
-        }
-        renderCategories();
-        updateFooter();
-      });
 
       // Clicking anywhere on header: toggles accordion expansion
       header.addEventListener('click', () => {
@@ -2948,7 +2911,7 @@ javascript:(async () => {
       const subsHead = document.createElement('div');
       subsHead.className = 'ih4-subs-head';
       subsHead.innerHTML = `
-        <span class="ih4-subs-status">${isSelectedCat ? (`${countSelected} of ${totalSubs} aisles selected`) : (`${totalSubs} subcategories:`)}</span>
+        <span class="ih4-subs-status">${isSelectedCat && countSelected > 0 ? (`${countSelected} of ${totalSubs} aisles selected`) : (`${totalSubs} subcategories:`)}</span>
         <div class="ih4-subs-actions">
           <button type="button" class="ih4-btn-action" data-action="all">Select All</button>
           <button type="button" class="ih4-btn-action" data-action="none">Clear</button>
@@ -2967,6 +2930,7 @@ javascript:(async () => {
       subsHead.querySelector('[data-action="none"]').addEventListener('click', (e) => {
         e.stopPropagation();
         if (selectedCat === catKey) {
+          selectedCat = null;
           selectedSubs.clear();
           renderCategories();
           updateFooter();
@@ -3002,6 +2966,9 @@ javascript:(async () => {
             // Same category -> toggle subcategory
             if (selectedSubs.has(subKey)) {
               selectedSubs.delete(subKey);
+              if (selectedSubs.size === 0) {
+                selectedCat = null;
+              }
             } else {
               selectedSubs.add(subKey);
             }
@@ -3020,7 +2987,7 @@ javascript:(async () => {
     }
 
     if (matchCount === 0) {
-      listEl.innerHTML = '<div style="padding:32px 14px;text-align:center;color:#94a3b8;font-size:12.5px;">No categories or subcategories matched your search.</div>';
+      listEl.innerHTML = '<div style="padding:32px 14px;text-align:center;color:#94a3b8;font-size:12.5px;">No categories in this section.</div>';
     }
   }
 
@@ -3031,11 +2998,6 @@ javascript:(async () => {
       currentSection = tab.dataset.sec;
       renderCategories();
     });
-  });
-
-  searchInput.addEventListener('input', (e) => {
-    filterQuery = e.target.value;
-    renderCategories();
   });
 
   renderCategories();
@@ -3132,8 +3094,40 @@ javascript:(async () => {
     @media (max-width: 900px) {
       .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
-    @media (max-width: 640px) {
-      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        padding: 10px 10px 60px !important;
+      }
+      .img-wrap {
+        height: 120px !important;
+        padding: 8px !important;
+      }
+      .product-img {
+        max-height: 105px !important;
+      }
+      .card-body {
+        padding: 10px !important;
+      }
+      .product-title {
+        font-size: 12px !important;
+        min-height: 32px !important;
+      }
+      .selling-price {
+        font-size: 14px !important;
+      }
+      .controls {
+        padding: 10px 12px !important;
+        gap: 8px !important;
+      }
+      .controls input {
+        min-width: 140px;
+        width: 100%;
+      }
+      .controls select {
+        min-width: calc(50% - 4px);
+      }
     }
 
     /* Product Card */
@@ -3540,6 +3534,8 @@ javascript:(async () => {
 
     isScouting = true;
     hasResults = false;
+    expandedCats.clear();
+    listEl.querySelectorAll('.ih4-cat-card.expanded').forEach(card => card.classList.remove('expanded'));
     fetchBtn.disabled = true;
     fetchBtn.textContent = '⏳ Scouting Deals…';
     fetchBtn.style.background = '';
