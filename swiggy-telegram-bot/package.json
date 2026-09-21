@@ -1,7 +1,7 @@
 {
   "name": "swiggy-deal-bot",
   "version": "1.0.0",
-  "description": "Telegram Alert Bot for Swiggy Instamart deals (Noice & Wednesday Bazaar)",
+  "description": "Telegram Alert Bot for Swiggy Instamart deals (5-Worker Interval Hunter)",
   "main": "src/bot.js",
   "scripts": {
     "start": "node src/bot.js",
@@ -11,8 +11,7 @@
     "test:treats": "node src/cron-runner.js treats --skip-sync",
     "test:lifestyle": "node src/cron-runner.js lifestyle --skip-sync",
     "test:beverages": "node src/cron-runner.js beverages --skip-sync",
-    "test:personal": "node src/cron-runner.js personal --skip-sync",
-    "test:bazaar": "node src/cron-runner.js bazaar --skip-sync"
+    "test:personal": "node src/cron-runner.js personal --skip-sync"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

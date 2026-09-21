@@ -1,7 +1,7 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config.json');
-const { fetchEssentialAisleDeals, fetchWednesdayBazaarDeals, fetchNoiceDeals } = require('./swiggyApi');
+const { fetchEssentialAisleDeals, fetchNoiceDeals } = require('./swiggyApi');
 const { findAlertWorthyDeals } = require('./dealTracker');
 const { sendBatchAlerts } = require('./notifier');
 
@@ -152,7 +152,6 @@ async function main() {
   let runLifestyle = false;
   let runBeverages = false;
   let runPersonal = false;
-  let runBazaar = false;
   let runNoice = false;
 
   if (mode === 'essentials' || mode === 'keywords' || mode === 'aisles') {
@@ -165,14 +164,12 @@ async function main() {
     runBeverages = true;
   } else if (mode === 'personal' || mode === 'personalcare' || mode === 'baby') {
     runPersonal = true;
-  } else if (mode === 'bazaar') {
-    runBazaar = true;
   } else if (mode === 'noice') {
     runNoice = true;
   } else {
     // Auto Mode:
-    // Scheduled window: 10:00 AM to 10:00 PM IST OR 12:00 AM midnight IST
-    const isWithinHours = (istHours === 0) || (istHours >= 10 && (istHours < 22 || (istHours === 22 && istMinutes <= 15)));
+    // Scheduled window: 10:00 AM to 10:00 PM IST
+    const isWithinHours = (istHours >= 10 && (istHours < 22 || (istHours === 22 && istMinutes <= 15)));
     if (isWithinHours) {
       runEssentials = true;
       runTreats = true;
@@ -180,11 +177,6 @@ async function main() {
       runBeverages = true;
       runPersonal = true;
     }
-  }
-
-  // Wednesday midnight window (12:00 AM - 12:30 AM IST on Wednesday)
-  if (istDay === 3 && istHours === 0 && (mode === 'bazaar' || mode === 'essentials' || mode === 'auto')) {
-    runBazaar = true;
   }
 
   const campaigns = config.campaigns || {};
@@ -254,24 +246,6 @@ async function main() {
     });
   }
 
-  // 4. Wednesday Bazaar
-  if (runBazaar) {
-    console.log('\n--- Running Wednesday Bazaar Scan ---');
-    try {
-      const items = await fetchWednesdayBazaarDeals(storeConfig);
-      console.log(`[Bazaar] Scraped ${items.length} items.`);
-      const alerts = findAlertWorthyDeals(items, minDiscount, 'wednesdayBazaar', {
-        refreshCycle: 'weekly',
-        weeklyResetDay: 3
-      });
-      console.log(`[Bazaar] Found ${alerts.length} new/improved deals >= ${minDiscount}%.`);
-      if (bot && chatId && alerts.length > 0) {
-        await sendBatchAlerts(bot, chatId, alerts, { timeString, workerInfo: '🎉 Wednesday Bazaar' });
-      }
-    } catch (e) {
-      console.error('[Bazaar] Error:', e.message);
-    }
-  }
 
   // 5. The NOICE Store Scan
   if (runNoice) {

@@ -28,8 +28,6 @@ When running the interactive bot (`npm start`):
 | `/setdiscount <worker> <percent>` | Directly set a worker's threshold (e.g. `/setdiscount essentials 65`) |
 | `/myinfo` | View your configured Dark Store IDs and active worker thresholds |
 | `/status` | View bot status, cache stats, and automated 5-worker scan schedules |
-| `/categories` | Scan all subcategories in any grocery aisle for deals ≥ 50% OFF on demand |
-| `/bazaar` | Scan Wednesday Bazaar Top Deals on demand |
 
 ---
 
@@ -53,9 +51,6 @@ npm run test:beverages
 
 # Test Worker 5: Personal Care, Baby & Laundry (28 aisles, ≥ 70% OFF)
 npm run test:personal
-
-# Test Wednesday Bazaar Deals (Runs automatically at 12:00 AM on Wednesdays)
-npm run test:bazaar
 
 # Start interactive bot polling daemon
 npm start

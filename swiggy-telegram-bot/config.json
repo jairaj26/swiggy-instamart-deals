@@ -613,16 +613,6 @@
         }
       ]
     },
-    "wednesdayBazaar": {
-      "name": "Wednesday Bazaar",
-      "type": "collection",
-      "collectionId": "397320",
-      "layoutId": "32944",
-      "minDiscount": 50,
-      "enabled": true,
-      "cron": "2 0 * * 3",
-      "description": "Every Wednesday at 12:02 AM"
-    },
     "noice": {
       "name": "The NOICE Store",
       "tag": "✨",

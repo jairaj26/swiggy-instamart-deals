@@ -1,8 +1,7 @@
 require('dotenv').config();
 const http = require('http');
 const TelegramBot = require('node-telegram-bot-api');
-const config = require('../config.json');
-const { fetchNoiceDeals, fetchWednesdayBazaarDeals } = require('./swiggyApi');
+const { fetchNoiceDeals } = require('./swiggyApi');
 const { findAlertWorthyDeals, loadCache } = require('./dealTracker');
 const { sendBatchAlerts } = require('./notifier');
 
@@ -54,22 +53,6 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // Webhook trigger for Wednesday Bazaar scan (can be called by cron-job.org)
-  if (url.pathname === '/trigger/bazaar') {
-    try {
-      const items = await fetchWednesdayBazaarDeals(storeConfig);
-      const alerts = findAlertWorthyDeals(items, minDiscount, 'wednesdayBazaar');
-      if (bot && chatId && alerts.length > 0) {
-        await sendBatchAlerts(bot, chatId, alerts);
-      }
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: true, campaign: 'wednesdayBazaar', itemsFound: items.length, alertsSent: alerts.length }));
-    } catch (e) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: e.message }));
-    }
-  }
-
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('Not Found');
 });
@@ -79,5 +62,4 @@ server.listen(PORT, () => {
   console.log(`[Server] Endpoints:`);
   console.log(`  - GET / (Status)`);
   console.log(`  - GET /trigger/noice (Trigger NOICE scan)`);
-  console.log(`  - GET /trigger/bazaar (Trigger Wednesday Bazaar scan)`);
 });

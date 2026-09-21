@@ -1,10 +1,7 @@
 require('dotenv').config();
-const cron = require('node-cron');
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config.json');
-const { fetchKeywordDeals, fetchWednesdayBazaarDeals, fetchCategoryDeals, INSTAMART_CATEGORIES } = require('./swiggyApi');
-const { findAlertWorthyDeals, getCachedDeals, loadCache } = require('./dealTracker');
-const { sendBatchAlerts } = require('./notifier');
+const { loadCache } = require('./dealTracker');
 const { getUser, updateUser } = require('./userManager');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -35,9 +32,7 @@ if (token && token !== 'your_bot_token_here') {
     { command: 'store', description: 'View or set Swiggy Dark Store IDs' },
     { command: 'setdiscount', description: 'Set discount % for each of the 5 workers' },
     { command: 'myinfo', description: 'View your profile & active store' },
-    { command: 'status', description: 'Check bot status & scan stats' },
-    { command: 'categories', description: 'Scan categories for deals (≥50% OFF)' },
-    { command: 'bazaar', description: 'Scan Wednesday Bazaar (≥50% OFF)' }
+    { command: 'status', description: 'Check bot status & scan stats' }
   ]).catch(err => console.error('[Bot] Failed to set menu commands:', err.message));
 
   // Error handling for polling & network hiccups
@@ -52,93 +47,6 @@ if (token && token !== 'your_bot_token_here') {
   console.warn('   Add your bot token to .env to enable Telegram alerts and interactive commands.');
   console.warn('   The scraper will still run and log deals to data/deals_cache.json!');
 }
-
-// Handler: Run Keyword Deal Hunter scan
-async function runKeywordScan(notifyChat = null) {
-  const user = notifyChat ? getUser(notifyChat, storeConfig) : null;
-  const userStore = user ? { sid: user.storeId, pid: user.primaryStoreId, secid: user.secondaryStoreId } : storeConfig;
-  const keywordHunterConfig = config.campaigns?.keywordHunter || {};
-  const keywordThresholds = keywordHunterConfig.thresholds || { essentials: 65, nonEssentials: 75 };
-
-  console.log(`[${new Date().toLocaleTimeString()}] Starting Keyword Deal Hunter scan for store ${userStore.sid}…`);
-  try {
-    const items = await fetchKeywordDeals(userStore, {
-      categories: keywordHunterConfig.categories,
-      thresholds: keywordThresholds
-    });
-    console.log(`[KeywordHunter] Scanned ${items.length} total items across target queries.`);
-
-    const alerts = findAlertWorthyDeals(items, keywordThresholds, 'keywordHunter');
-    console.log(`[KeywordHunter] Found ${alerts.length} deals matching tiered thresholds (Essentials ≥${keywordThresholds.essentials}%, Snacks ≥${keywordThresholds.nonEssentials}%).`);
-
-    const targetChat = notifyChat || chatId;
-    if (bot && targetChat && alerts.length > 0) {
-      await sendBatchAlerts(bot, targetChat, alerts, { workerInfo: 'Keyword Hunter' });
-    } else if (bot && targetChat && alerts.length === 0) {
-      const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-      const locText = user?.area ? ` in ${user.area}` : '';
-      bot.sendMessage(
-        targetChat,
-        `ℹ️ <b>[Keyword Deal Hunter • ${timeStr}]</b>\nScanned essentials & snacks${locText}. No deals found above thresholds (Essentials ≥<b>${keywordThresholds.essentials}%</b>, Snacks ≥<b>${keywordThresholds.nonEssentials}%</b>) right now.`,
-        { parse_mode: 'HTML' }
-      );
-    }
-  } catch (err) {
-    console.error('[KeywordHunter] Scan error:', err);
-    const targetChat = notifyChat || chatId;
-    if (bot && targetChat) bot.sendMessage(targetChat, '❌ Error during Keyword Deal Hunter scan: ' + err.message);
-  }
-}
-
-// Handler: Run Wednesday Bazaar scan
-async function runWednesdayBazaarScan(notifyChat = null) {
-  const user = notifyChat ? getUser(notifyChat, storeConfig) : null;
-  const userStore = user ? { sid: user.storeId, pid: user.primaryStoreId, secid: user.secondaryStoreId } : storeConfig;
-  const bazaarMinDiscount = config.campaigns?.wednesdayBazaar?.minDiscount || 50;
-
-  console.log(`[${new Date().toLocaleTimeString()}] Starting Wednesday Bazaar scan for store ${userStore.sid}…`);
-  try {
-    const items = await fetchWednesdayBazaarDeals(userStore);
-    console.log(`[Bazaar] Scanned ${items.length} total items.`);
-
-    const alerts = findAlertWorthyDeals(items, bazaarMinDiscount, 'wednesdayBazaar');
-    console.log(`[Bazaar] Found ${alerts.length} deals matching >= ${bazaarMinDiscount}% OFF threshold.`);
-
-    const targetChat = notifyChat || chatId;
-    if (bot && targetChat && alerts.length > 0) {
-      await sendBatchAlerts(bot, targetChat, alerts);
-    } else if (bot && targetChat && alerts.length === 0) {
-      const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-      const locText = user?.area ? ` in ${user.area}` : '';
-      bot.sendMessage(
-        targetChat,
-        `ℹ️ <b>[Wednesday Bazaar Scan • ${timeStr}]</b>\nScanned <b>${items.length} items</b>${locText}. No deals found above <b>${bazaarMinDiscount}% OFF</b> right now.`,
-        { parse_mode: 'HTML' }
-      );
-    }
-  } catch (err) {
-    console.error('[Bazaar] Scan error:', err);
-    const targetChat = notifyChat || chatId;
-    if (bot && targetChat) bot.sendMessage(targetChat, '❌ Error during Wednesday Bazaar scan: ' + err.message);
-  }
-}
-
-// Scheduled Jobs
-// 1. Keyword Deal Hunter: Hourly between 10:00 AM and 9:05 PM (at minute 5)
-const keywordCron = config.campaigns?.keywordHunter?.cron || '5 10-21 * * *';
-cron.schedule(keywordCron, () => {
-  console.log('⏰ Scheduled Trigger: Keyword Deal Hunter Hourly Scan');
-  runKeywordScan();
-});
-console.log(`📅 Scheduled: Keyword Deal Hunter (${config.campaigns?.keywordHunter?.description || 'Hourly'}) [${keywordCron}]`);
-
-// 2. Wednesday Bazaar: Every Wednesday at 12:02 AM
-const bazaarCron = config.campaigns.wednesdayBazaar.cron || '2 0 * * 3';
-cron.schedule(bazaarCron, () => {
-  console.log('⏰ Scheduled Trigger: Wednesday Bazaar Scan');
-  runWednesdayBazaarScan();
-});
-console.log(`📅 Scheduled: Wednesday Bazaar scan (${config.campaigns.wednesdayBazaar.description}) [${bazaarCron}]`);
 
 // Telegram Bot Interactive Commands & Event Handlers
 if (bot) {
@@ -162,24 +70,22 @@ if (bot) {
     const text = 
 `👋 <b>Welcome to Instamart Hunter Deal Bot!</b>
 
-I monitor <b>154 Dark Store Aisles</b> across <b>5 Parallel Workers</b>, plus <b>Wednesday Bazaar</b> and all <b>Instamart Categories</b> to find you the highest discounts!
+I monitor <b>154 Dark Store Aisles</b> across <b>5 Parallel Workers</b> every hour (10:00 AM – 10:00 PM IST) to find you the highest discounts!
 
 📍 <b>Dark Store Configuration:</b>
 • <code>/store</code> — View your current store or get instructions on how to find your Dark Store IDs
 • <code>/store &lt;primaryId&gt; [secondaryId]</code> — Link your exact Swiggy warehouse pod IDs
 • <code>/myinfo</code> — View your active store IDs and all 5 worker discount thresholds
 
-🎯 <b>Deal Hunter Workers & Alerts:</b>
+🎯 <b>Deal Hunter Workers & Default Thresholds:</b>
 • 🌾 <b>Worker 1 (Essentials & Fresh)</b> — Veggies, Fruits, Staples, Dairy, Dry Fruits (≥ 60% OFF)
 • 🍿 <b>Worker 2 (Sweets & Snacks)</b> — Chips, Chocolates, Sweets, Ice Cream, Noodles (≥ 70% OFF)
 • 🛍️ <b>Worker 3 (Lifestyle & Fashion)</b> — Cookware, Appliances, Stationery, Innerwear (≥ 85% OFF)
 • 🥤 <b>Worker 4 (Beverages & Spreads)</b> — Colas, Juices, Coffee, Tea, Oats, Sauces (≥ 70% OFF)
 • 🧴 <b>Worker 5 (Personal Care & Laundry)</b> — Soaps, Skincare, Baby, Detergents (≥ 70% OFF)
 
-🛍️ <b>Interactive Scanners & Settings:</b>
+⚙️ <b>Settings & Status:</b>
 • <code>/setdiscount</code> — Change discount threshold for any specific worker (or all together)
-• <code>/categories</code> — Browse categories for deals <b>≥ 50% OFF</b> on demand
-• <code>/bazaar</code> — Scan Wednesday Bazaar Top Deals (≥ 50% OFF)
 • <code>/status</code> — Check bot status & tracked deals
 
 <i>💡 Tap the <b>Menu</b> button at the bottom left to quickly run any command!</i>`;
@@ -229,7 +135,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `✅ <b>Store configuration updated:</b>\n` +
       `• <b>Primary Store ID</b>: <code>${sid}</code>\n` +
       `• <b>Secondary Store ID</b>: <code>${finalSecid}</code>\n\n` +
-      `Live scans via <b>/categories</b> and <b>/bazaar</b> will now pull catalogs directly from this warehouse pod!`,
+      `Automated 5-worker hourly interval scans will now pull catalogs directly from this warehouse pod!`,
       { parse_mode: 'HTML' }
     );
   }
@@ -356,46 +262,16 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
     );
   });
 
-  bot.onText(/\/noice/, (msg) => {
-    const kh = config.campaigns?.keywordHunter || {};
-    const eCut = kh.thresholds?.essentials || 65;
-    const nCut = kh.thresholds?.nonEssentials || 75;
+  // Deprecated manual fetch commands: Provide informative message
+  bot.onText(/\/(?:categories|bazaar|noice)(?:@\w+)?/i, (msg) => {
     bot.sendMessage(
       msg.chat.id,
-      'ℹ️ <b>Keyword Deal Hunter (Hourly Automatic Scan):</b>\n\n' +
-      'The NOICE scan has been upgraded to the more comprehensive <b>Keyword Deal Hunter</b>!\n\n' +
-      `The bot automatically searches essential groceries (≥ <b>${eCut}% OFF</b>) and snacks & treats (≥ <b>${nCut}% OFF</b>) <b>every hour</b> (10:00 AM – 9:05 PM) across your dark store pod and alerts you immediately.\n\n` +
-      '💡 <i>On-demand keyword scans are disabled to conserve API calls and avoid rate limits. Tap <b>/categories</b> to scan specific grocery departments on demand.</i>',
+      'ℹ️ <b>Manual fetching is disabled.</b>\n\n' +
+      'Deals across all <b>154 grocery aisles</b> are monitored automatically every hour (10:00 AM – 10:00 PM IST) across 5 parallel workers.\n\n' +
+      '• Use <code>/setdiscount</code> to configure alert thresholds for each worker.\n' +
+      '• Use <code>/store</code> to check or update your Dark Store IDs.\n' +
+      '• Use <code>/status</code> to check active settings.',
       { parse_mode: 'HTML' }
-    );
-  });
-
-  // /categories command: Interactive inline keyboard for departments
-  bot.onText(/\/categories/, (msg) => {
-    const inline_keyboard = [];
-    const keys = Object.keys(INSTAMART_CATEGORIES);
-    for (let i = 0; i < keys.length; i += 2) {
-      const row = [];
-      const k1 = keys[i];
-      const c1 = INSTAMART_CATEGORIES[k1];
-      row.push({ text: `${c1.icon} ${c1.name}`, callback_data: `cat:${k1}` });
-
-      if (i + 1 < keys.length) {
-        const k2 = keys[i + 1];
-        const c2 = INSTAMART_CATEGORIES[k2];
-        row.push({ text: `${c2.icon} ${c2.name}`, callback_data: `cat:${k2}` });
-      }
-      inline_keyboard.push(row);
-    }
-
-    bot.sendMessage(
-      msg.chat.id,
-      '🛒 <b>Instamart Category Deals:</b>\n\n' +
-      'Choose any category below to scan all its subcategories for deals with <b>≥ 50% OFF</b>:',
-      {
-        parse_mode: 'HTML',
-        reply_markup: { inline_keyboard }
-      }
     );
   });
 
@@ -526,83 +402,6 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
         }
       }
     }
-
-    if (!data.startsWith('cat:')) return;
-
-    const catKey = data.split(':')[1];
-    const catObj = INSTAMART_CATEGORIES[catKey];
-    if (!catObj) {
-      return bot.answerCallbackQuery(query.id, { text: 'Category not found' });
-    }
-
-    await bot.answerCallbackQuery(query.id, { text: `Scanning ${catObj.name}…` });
-
-    const chatId = query.message.chat.id;
-    const user = getUser(chatId, storeConfig);
-    const userStore = { sid: user.storeId, pid: user.primaryStoreId, secid: user.secondaryStoreId };
-    const cutoff = 50; // User requirement: >= 50% off for categories
-
-    const statusMsg = await bot.sendMessage(
-      chatId,
-      `🔄 <b>Preparing scan for ${catObj.icon} ${catObj.name}…</b>\n<i>Connecting to warehouse pod ${userStore.sid}…</i>`,
-      { parse_mode: 'HTML' }
-    );
-
-    let lastEditTime = Date.now();
-    const spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-
-    const onProgress = async (current, total, subName) => {
-      const now = Date.now();
-      if (now - lastEditTime > 1400 || current === total) {
-        lastEditTime = now;
-        const spinner = spinnerFrames[current % spinnerFrames.length];
-        const progressText =
-          `🔄 <b>Scanning ${catObj.icon} ${catObj.name}</b>\n` +
-          `${spinner} [${current}/${total}] <i>${escapeHtml(subName)}</i>…`;
-        await bot.editMessageText(progressText, {
-          chat_id: chatId,
-          message_id: statusMsg.message_id,
-          parse_mode: 'HTML'
-        }).catch(() => {});
-      }
-    };
-
-    try {
-      const items = await fetchCategoryDeals(catKey, userStore, onProgress);
-      const deals = items.filter((item) => item.discount >= cutoff);
-
-      if (deals.length > 0) {
-        await bot.editMessageText(
-          `✅ <b>Found ${deals.length} deals ≥ ${cutoff}% OFF in ${catObj.icon} ${catObj.name}!</b>`,
-          { chat_id: chatId, message_id: statusMsg.message_id, parse_mode: 'HTML' }
-        ).catch(() => {});
-
-        const formattedDeals = deals.map((d) => ({
-          ...d,
-          alertType: 'NEW_DEAL',
-          campaignKey: `category:${catKey}`,
-          categoryTitle: `${catObj.icon} ${catObj.name}`
-        }));
-
-        await sendBatchAlerts(bot, chatId, formattedDeals);
-      } else {
-        await bot.editMessageText(
-          `ℹ️ <b>${catObj.icon} ${catObj.name}</b>\nScanned all subcategories. No items found above <b>${cutoff}% OFF</b> right now.`,
-          { chat_id: chatId, message_id: statusMsg.message_id, parse_mode: 'HTML' }
-        ).catch(() => {});
-      }
-    } catch (err) {
-      console.error(`[CategoryScan] Error scanning ${catKey}:`, err);
-      bot.editMessageText(
-        `❌ Error scanning ${catObj.name}: ${err.message}`,
-        { chat_id: chatId, message_id: statusMsg.message_id }
-      ).catch(() => {});
-    }
-  });
-
-  bot.onText(/\/(?:bazaar)(?:@\w+)?/i, (msg) => {
-    bot.sendMessage(msg.chat.id, '🔍 Scanning <b>Wednesday Bazaar Top Deals</b> across all pages… please wait ~10-15s.', { parse_mode: 'HTML' });
-    runWednesdayBazaarScan(msg.chat.id);
   });
 
   bot.onText(/^\/setdiscount(?:@\w+)?(?:\s+(\w+))?(?:\s+(\d+))?/i, (msg, match) => {
@@ -698,11 +497,8 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
     const pid = user.primaryStoreId || user.storeId || storeConfig.pid || 'Not set';
     const secid = user.secondaryStoreId || storeConfig.secid || 'None';
     const wd = user.workerDiscounts || {};
-    const khRun = (cache.lastRuns?.keywordHunter || cache.lastRuns?.noice)
-      ? new Date((cache.lastRuns?.keywordHunter || cache.lastRuns?.noice).timestamp).toLocaleString('en-IN')
-      : 'Never';
-    const bazaarRun = cache.lastRuns?.wednesdayBazaar
-      ? new Date(cache.lastRuns.wednesdayBazaar.timestamp).toLocaleString('en-IN')
+    const khRun = (cache.lastRuns?.essentials || cache.lastRuns?.treats || cache.lastRuns?.lifestyle || cache.lastRuns?.keywordHunter || cache.lastRuns?.noice)
+      ? new Date((cache.lastRuns?.essentials || cache.lastRuns?.treats || cache.lastRuns?.lifestyle || cache.lastRuns?.keywordHunter || cache.lastRuns?.noice).timestamp).toLocaleString('en-IN')
       : 'Never';
 
     const statusText = 
@@ -721,11 +517,9 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
 📦 <b>Tracked Catalog & Last Runs</b>:
 • <b>Total Tracked Items</b>: ${Object.keys(cache.items || {}).length}
 • <b>Last Automated Hunter Run</b>: ${khRun}
-• <b>Last Bazaar Scan</b>: ${bazaarRun}
 
 ⏰ <b>Automated Schedules</b>:
-• <b>5-Worker Deals Hunter</b>: 10:00 AM – 10:00 PM IST (Hourly via GitHub Actions)
-• <b>Wednesday Bazaar</b>: Every Wednesday at 12:02 AM IST`;
+• <b>5-Worker Deals Hunter</b>: 10:00 AM – 10:00 PM IST (Hourly via GitHub Actions)`;
 
     bot.sendMessage(msg.chat.id, statusText, { parse_mode: 'HTML' });
   });

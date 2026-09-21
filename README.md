@@ -67,7 +67,7 @@ An automated deal hunter running on a scheduled cron. Every hour, it triggers **
 
 | Worker | Campaign Name | Aisles | Default Min Discount | Included Subcategories |
 | :--- | :--- | :---: | :---: | :--- |
-| **Worker 1** | **🌾 Daily Essentials & Fresh** | **36** | **≥ 60% OFF** | **Fresh Produce (Vegetables, Leafy & Seasonings, Cuts & Sprouts, Fruits)**, Atta, Rice, Basmati Rice, Toor/Moong/Urad Dal, Besan/Sooji/Maida, Rajma/Chola, Poha, Sunflower/Mustard/Olive Oils, Ghee, Spices & Salt, Ginger-Garlic Pastes, Paneer & Tofu, Butter, Cheese, Curd & Yogurt, Eggs, Bread & Buns, Fresh Bakery, **Dry Fruits (Cashews, Almonds, Dates, Pista, Berries)**. *(Also triggers Wednesday Bazaar at 12:00 AM midnight).* |
+| **Worker 1** | **🌾 Daily Essentials & Fresh** | **36** | **≥ 60% OFF** | **Fresh Produce (Vegetables, Leafy & Seasonings, Cuts & Sprouts, Fruits)**, Atta, Rice, Basmati Rice, Toor/Moong/Urad Dal, Besan/Sooji/Maida, Rajma/Chola, Poha, Sunflower/Mustard/Olive Oils, Ghee, Spices & Salt, Ginger-Garlic Pastes, Paneer & Tofu, Butter, Cheese, Curd & Yogurt, Eggs, Bread & Buns, Fresh Bakery, **Dry Fruits (Cashews, Almonds, Dates, Pista, Berries)**. |
 | **Worker 2** | **🍿 Sweets, Snacks & Treats** | **40** | **≥ 70% OFF** | Chips & Crisps, Bhujia & Namkeens, Indian Snacks, Nachos, Puffs, Popcorn, Chocolates (Milk, Dark, Gift Boxes, Shared Packs, Wafers, Candies), Traditional Sweets (Kaju Katli, Gulab Jamun, Rasgulla, Mysore Pak, Ladoos, Chikki), Cookies, Cream Biscuits, Cakes, Rusks, Ice Cream (Tubs, Cones, Sticks, Kulfi), Instant & Korean Noodles, Veg & Non-Veg Frozen Snacks, Momos & Kebabs. |
 | **Worker 3** | **🛍️ Lifestyle, Home & Fashion** | **20** | **≥ 85% OFF** | Non-Toxic Cookware, Cookware, Kitchen Tools, 304 Stainless Steel, Serveware & Crockery, Bakeware & BBQ, Personal Care Appliances, Earphones & Headsets, Stationery (Pens, Notebooks, Office & School Supplies, Art & Craft), STEM & Learning, Books, Men's & Women's Innerwear, Footwear, Belts & Wallets. |
 | **Worker 4** | **🥤 Cold Drinks, Beverages & Spreads** | **30** | **≥ 70% OFF** | Soft Drinks, Fruit Juices, Energy & Hydration Drinks, Mango Drinks, Coconut Water, Soda & Mixers, Ice Tea & Kombucha, Diet Soft Drinks, Tea & Herbal Tea, Instant & Filter Coffee, Cold Coffee, Oats, Muesli & Granola, Cereals, Ketchup, Mayonnaise & Spreads, Peanut Butter, Chocolate Spreads, Jams, Honey & Vinegars, Asian Sauces & Dips. |
@@ -157,7 +157,7 @@ In your forked GitHub repository:
 1. Go to the **Actions** tab in your forked repository.
 2. GitHub automatically disables scheduled workflows on forks by default. Click the green button: **"I understand my workflows, go ahead and enable them"**.
 3. Select **"Swiggy Instamart Keyword Deal Hunter"** in the left sidebar, click **Run workflow**, and check **Run workflow** to test it immediately!
-4. From now on, GitHub Actions will automatically wake up every hour between **10:00 AM and 10:00 PM IST** (plus 12:00 AM midnight for Wednesday Bazaar), scrape all 154 aisles across 5 parallel workers, suppress repeated alerts, and send fresh deals straight to your Telegram!
+4. From now on, GitHub Actions will automatically wake up every hour between **10:00 AM and 10:00 PM IST**, scrape all 154 aisles across 5 parallel workers, suppress repeated alerts, and send fresh deals straight to your Telegram!
 
 ---
 
@@ -198,9 +198,6 @@ npm run test:beverages
 
 # Test Worker 5 (Personal Care, Baby & Laundry - 28 aisles, ≥ 70% OFF)
 npm run test:personal
-
-# Test Wednesday Bazaar Deals
-npm run test:bazaar
 ```
 
 ---
