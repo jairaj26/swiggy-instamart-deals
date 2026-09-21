@@ -29,23 +29,44 @@ function saveUsers(users) {
   }
 }
 
+const DEFAULT_WORKER_DISCOUNTS = {
+  essentials: 60,
+  treats: 70,
+  lifestyle: 85,
+  beverages: 70,
+  personalCare: 70
+};
+
 function getUser(chatId, defaultConfig = {}) {
   const users = loadUsers();
-  return users[String(chatId)] || {
+  const user = users[String(chatId)] || {};
+  return {
     chatId: String(chatId),
-    pincode: null,
-    area: null,
-    storeId: defaultConfig.sid || '',
-    primaryStoreId: defaultConfig.pid || '',
-    secondaryStoreId: defaultConfig.secid || '',
-    minDiscount: defaultConfig.minDiscount || 30
+    storeId: user.storeId || defaultConfig.sid || '',
+    primaryStoreId: user.primaryStoreId || defaultConfig.pid || '',
+    secondaryStoreId: user.secondaryStoreId || defaultConfig.secid || '',
+    minDiscount: user.minDiscount || defaultConfig.minDiscount || 70,
+    workerDiscounts: {
+      ...DEFAULT_WORKER_DISCOUNTS,
+      ...(user.workerDiscounts || {})
+    }
   };
 }
 
 function updateUser(chatId, partialData) {
   const users = loadUsers();
   const id = String(chatId);
-  users[id] = { ...(users[id] || { chatId: id }), ...partialData, updatedAt: Date.now() };
+  const existing = users[id] || { chatId: id };
+  const mergedWorkerDiscounts = partialData.workerDiscounts
+    ? { ...(existing.workerDiscounts || DEFAULT_WORKER_DISCOUNTS), ...partialData.workerDiscounts }
+    : (existing.workerDiscounts || DEFAULT_WORKER_DISCOUNTS);
+
+  users[id] = {
+    ...existing,
+    ...partialData,
+    workerDiscounts: mergedWorkerDiscounts,
+    updatedAt: Date.now()
+  };
   saveUsers(users);
   return users[id];
 }
@@ -56,6 +77,7 @@ function getAllUsers() {
 }
 
 module.exports = {
+  DEFAULT_WORKER_DISCOUNTS,
   getUser,
   updateUser,
   getAllUsers

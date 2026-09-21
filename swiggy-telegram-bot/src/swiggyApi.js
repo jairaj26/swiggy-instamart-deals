@@ -585,9 +585,14 @@ async function apiRequestSafe(url, method = 'GET', body = null, retry = 0) {
       isCloudfrontRateLimited;
 
     if (isRateLimited) {
-      if (retry >= 3) return null;
-      const waitSec = 8 + Math.floor(Math.random() * 4);
-      console.warn(`[SwiggyAPI] Rate-limited (retry ${retry + 1}/3, CloudFront limit: ${isCloudfrontRateLimited}). Waiting ${waitSec}s...`);
+      if (isCloudfrontRateLimited) {
+        // CloudFront 0-byte response or WAF challenge requires valid cookie / browser session
+        console.warn('[SwiggyAPI] CloudFront challenge detected (0-byte response). Skipping retry.');
+        return null;
+      }
+      if (retry >= 1) return null;
+      const waitSec = 3 + Math.floor(Math.random() * 3);
+      console.warn(`[SwiggyAPI] Rate-limited (retry ${retry + 1}/1). Waiting ${waitSec}s...`);
       await sleep(waitSec * 1000);
       return apiRequestSafe(url, method, body, retry + 1);
     }
@@ -732,6 +737,7 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
 
   console.log(`[SwiggyAPI] Scanning ${subcategories.length} ${campaignName} for Store ${sid}...`);
 
+  let consecutiveBlocks = 0;
   for (let i = 0; i < subcategories.length; i++) {
     const item = subcategories[i];
     const filterUrl = `https://instamart.in/api/instamart/category-listing/filter/v2?storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
@@ -747,6 +753,7 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
 
     const json = await apiRequestSafe(filterUrl, 'POST', body);
     if (json?.data) {
+      consecutiveBlocks = 0;
       const items = parseItemsFromData(json);
       for (const it of items) {
         it.category = item.category;
@@ -758,8 +765,14 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
           resultMap.set(it.name, it);
         }
       }
+    } else {
+      consecutiveBlocks++;
+      if (consecutiveBlocks >= 4) {
+        console.warn(`[SwiggyAPI] CloudFront WAF challenge active (4 consecutive blocked requests). Halting scan to prevent IP block.`);
+        break;
+      }
     }
-    await sleep(700);
+    await sleep(350);
   }
 
   const allItems = Array.from(resultMap.values());

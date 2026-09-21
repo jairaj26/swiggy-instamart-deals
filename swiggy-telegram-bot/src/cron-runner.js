@@ -73,12 +73,12 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
 
   let items = [];
   let attempts = 0;
-  const maxAttempts = 3;
+  const maxAttempts = 1;
 
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      console.log(`[${campaignKey}] Attempt ${attempts}/${maxAttempts} - Fetching deals...`);
+      console.log(`[${campaignKey}] Fetching deals for ${subcategories.length} aisles...`);
       items = await fetchEssentialAisleDeals(storeConfig, {
         subcategories,
         campaignName: name,
@@ -86,21 +86,13 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
       });
 
       if (items && items.length > 0) {
-        console.log(`[${campaignKey}] Attempt ${attempts} succeeded: scraped ${items.length} items across ${subcategories.length} aisles.`);
+        console.log(`[${campaignKey}] Scraped ${items.length} items across ${subcategories.length} aisles.`);
         break;
       } else {
-        console.warn(`[${campaignKey}] Attempt ${attempts} returned 0 items.`);
-        if (attempts < maxAttempts) {
-          console.log(`[${campaignKey}] Waiting 6s before retry ${attempts + 1}...`);
-          await sleep(6000);
-        }
+        console.warn(`[${campaignKey}] Scan completed: 0 items returned.`);
       }
     } catch (e) {
-      console.error(`[${campaignKey}] Attempt ${attempts} error:`, e.message);
-      if (attempts < maxAttempts) {
-        console.log(`[${campaignKey}] Waiting 6s before retry ${attempts + 1}...`);
-        await sleep(6000);
-      }
+      console.error(`[${campaignKey}] Scan error:`, e.message);
     }
   }
 
@@ -158,6 +150,8 @@ async function main() {
   let runEssentials = false;
   let runTreats = false;
   let runLifestyle = false;
+  let runBeverages = false;
+  let runPersonal = false;
   let runBazaar = false;
   let runNoice = false;
 
@@ -167,6 +161,10 @@ async function main() {
     runTreats = true;
   } else if (mode === 'lifestyle' || mode === 'home' || mode === 'electronics') {
     runLifestyle = true;
+  } else if (mode === 'beverages' || mode === 'drinks' || mode === 'juices') {
+    runBeverages = true;
+  } else if (mode === 'personal' || mode === 'personalcare' || mode === 'baby') {
+    runPersonal = true;
   } else if (mode === 'bazaar') {
     runBazaar = true;
   } else if (mode === 'noice') {
@@ -179,6 +177,8 @@ async function main() {
       runEssentials = true;
       runTreats = true;
       runLifestyle = true;
+      runBeverages = true;
+      runPersonal = true;
     }
   }
 
@@ -192,7 +192,7 @@ async function main() {
   // 1. Worker 1: Daily Essentials & Fresh
   if (runEssentials) {
     const cfg = campaigns.essentials || campaigns.essentialAisles || {};
-    const threshold = parseInt(process.env.ESSENTIALS_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 60;
+    const threshold = parseInt(process.env.ESSENTIALS_MIN_DISCOUNT, 10) || cfg.minDiscount || 60;
     await runSubcategoryCampaign('essentials', cfg, {
       bot,
       chatId,
@@ -205,7 +205,7 @@ async function main() {
   // 2. Worker 2: Sweets, Snacks & Treats
   if (runTreats) {
     const cfg = campaigns.treats || {};
-    const threshold = parseInt(process.env.TREATS_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 70;
+    const threshold = parseInt(process.env.TREATS_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
     await runSubcategoryCampaign('treats', cfg, {
       bot,
       chatId,
@@ -218,8 +218,34 @@ async function main() {
   // 3. Worker 3: Lifestyle, Home & Electronics
   if (runLifestyle) {
     const cfg = campaigns.lifestyle || {};
-    const threshold = parseInt(process.env.LIFESTYLE_MIN_DISCOUNT, 10) || cfg.minDiscount || parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 85;
+    const threshold = parseInt(process.env.LIFESTYLE_MIN_DISCOUNT, 10) || cfg.minDiscount || 85;
     await runSubcategoryCampaign('lifestyle', cfg, {
+      bot,
+      chatId,
+      storeConfig,
+      threshold,
+      timeString
+    });
+  }
+
+  // 4. Worker 4: Cold Drinks, Beverages & Spreads
+  if (runBeverages) {
+    const cfg = campaigns.beverages || {};
+    const threshold = parseInt(process.env.BEVERAGES_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
+    await runSubcategoryCampaign('beverages', cfg, {
+      bot,
+      chatId,
+      storeConfig,
+      threshold,
+      timeString
+    });
+  }
+
+  // 5. Worker 5: Personal Care, Baby & Laundry
+  if (runPersonal) {
+    const cfg = campaigns.personalCare || campaigns.personal || {};
+    const threshold = parseInt(process.env.PERSONAL_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
+    await runSubcategoryCampaign('personalCare', cfg, {
       bot,
       chatId,
       storeConfig,

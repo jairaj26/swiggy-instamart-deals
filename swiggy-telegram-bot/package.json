@@ -10,6 +10,8 @@
     "test:essentials": "node src/cron-runner.js essentials --skip-sync",
     "test:treats": "node src/cron-runner.js treats --skip-sync",
     "test:lifestyle": "node src/cron-runner.js lifestyle --skip-sync",
+    "test:beverages": "node src/cron-runner.js beverages --skip-sync",
+    "test:personal": "node src/cron-runner.js personal --skip-sync",
     "test:bazaar": "node src/cron-runner.js bazaar --skip-sync"
   },
   "dependencies": {

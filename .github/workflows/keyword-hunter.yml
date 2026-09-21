@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        worker: [essentials, treats, lifestyle]
+        worker: [essentials, treats, lifestyle, beverages, personal]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -54,6 +54,11 @@ jobs:
           SWIGGY_PRIMARY_STORE_ID: ${{ secrets.SWIGGY_PRIMARY_STORE_ID }}
           SWIGGY_SECONDARY_STORE_ID: ${{ secrets.SWIGGY_SECONDARY_STORE_ID }}
           SWIGGY_COOKIE: ${{ secrets.SWIGGY_COOKIE }}
+          ESSENTIALS_MIN_DISCOUNT: ${{ secrets.ESSENTIALS_MIN_DISCOUNT }}
+          TREATS_MIN_DISCOUNT: ${{ secrets.TREATS_MIN_DISCOUNT }}
+          LIFESTYLE_MIN_DISCOUNT: ${{ secrets.LIFESTYLE_MIN_DISCOUNT }}
+          BEVERAGES_MIN_DISCOUNT: ${{ secrets.BEVERAGES_MIN_DISCOUNT }}
+          PERSONAL_MIN_DISCOUNT: ${{ secrets.PERSONAL_MIN_DISCOUNT }}
           USE_BROWSER: 'false'
           SKIP_SYNC: ${{ inputs.skip_sync }}
         run: |
