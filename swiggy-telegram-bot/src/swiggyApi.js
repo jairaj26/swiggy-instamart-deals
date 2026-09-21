@@ -735,6 +735,11 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
   const { sid, pid, secid } = storeConfig;
   const resultMap = new Map();
 
+  if (!sid) {
+    console.error('[SwiggyAPI] Aborting: Store ID is missing or empty! Cannot query catalog.');
+    return [];
+  }
+
   console.log(`[SwiggyAPI] Scanning ${subcategories.length} ${campaignName} for Store ${sid}...`);
 
   let consecutiveBlocks = 0;

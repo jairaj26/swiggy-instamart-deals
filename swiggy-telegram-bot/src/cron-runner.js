@@ -12,10 +12,20 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 const minDiscount = parseInt(process.env.MIN_DISCOUNT_PERCENT, 10) || config.minDiscount || 70;
 
 const storeConfig = {
-  sid: process.env.SWIGGY_STORE_ID || config.store.sid,
-  pid: process.env.SWIGGY_PRIMARY_STORE_ID || config.store.pid,
-  secid: process.env.SWIGGY_SECONDARY_STORE_ID || config.store.secid
+  sid: process.env.SWIGGY_STORE_ID || config.store?.sid || '',
+  pid: process.env.SWIGGY_PRIMARY_STORE_ID || config.store?.pid || '',
+  secid: process.env.SWIGGY_SECONDARY_STORE_ID || config.store?.secid || ''
 };
+
+if (!storeConfig.sid) {
+  console.error('❌ FATAL: SWIGGY_STORE_ID is missing or empty!');
+  console.error('   Please configure SWIGGY_STORE_ID in your GitHub Repository Secrets:');
+  console.error('   👉 Settings → Secrets and variables → Actions → New repository secret');
+  console.error('   • SWIGGY_STORE_ID = <your_dark_store_id>');
+  console.error('   • SWIGGY_PRIMARY_STORE_ID = <your_dark_store_id>');
+  console.error('   • SWIGGY_SECONDARY_STORE_ID = <secondary_id_or_same>');
+  process.exit(1);
+}
 
 // Parse command line arguments
 const args = process.argv.slice(2);
