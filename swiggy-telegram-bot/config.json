@@ -33,73 +33,73 @@
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Fresh Fruits",
+          "category": "Fresh Vegetables",
           "name": "Fresh Fruits",
-          "id": "6822eeeded32000001e25aaf",
+          "id": "6822eeeded32000001e25aad",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Atta",
           "id": "6903b01ed2c61b000112ba2c",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Rice",
           "id": "6903b01ed2c61b000112ba2d",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Basmati Rice",
           "id": "6903b01ed2c61b000112ba2b",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Toor, Moong and Urad",
           "id": "6903b01ed2c61b000112ba31",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Besan, Sooji and Maida",
           "id": "6903b01ed2c61b000112ba2e",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Rajma, Chola and Others",
           "id": "6903b01ed2c61b000112ba32",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Atta, Rice & Dal",
+          "category": "Atta, Rice and Dal",
           "name": "Poha & Puffed Rice",
           "id": "6903b01ed2c61b000112ba33",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Oils & Ghee",
+          "category": "Oils and Ghee",
           "name": "Sunflower Oils",
           "id": "69394956ed899c0001b1aed9",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Oils & Ghee",
+          "category": "Oils and Ghee",
           "name": "Mustard Oils",
           "id": "69392fc99bd17b000135e3bd",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Oils & Ghee",
+          "category": "Oils and Ghee",
           "name": "Ghee",
           "id": "69392fc99bd17b000135e3bb",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Oils & Ghee",
+          "category": "Oils and Ghee",
           "name": "Olive Oils",
           "id": "69394956ed899c0001b1aed4",
           "taxonomyType": "taxonomy 5"
@@ -135,97 +135,97 @@
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Paneer and Tofu",
           "id": "6822eeeded32000001e25ac2",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Butter",
           "id": "6822eeeded32000001e25ac4",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Cheese",
           "id": "6822eeeded32000001e25ac3",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Curd and Yogurts",
           "id": "6822eeeded32000001e25ac0",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Eggs",
           "id": "6822eeeded32000001e25abf",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Bread and Buns",
           "id": "6822eeeded32000001e25abd",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Cream and Condensed Milk",
           "id": "6970b6e9b6373a00010b3a9e",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Fresh Bakery",
           "id": "69e23025ed442900016e5d6f",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Indian Breads",
           "id": "6822eeeded32000001e25ac6",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dairy, Bread & Eggs",
+          "category": "Dairy, Bread and Eggs",
           "name": "Lassi and Buttermilk",
           "id": "6822eeeded32000001e25ac8",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Cashews",
           "id": "69492e33cfaac00001f0780f",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Almonds",
           "id": "6949160474f4c20001b6be00",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Mixed Dry Fruits",
           "id": "6949160474f4c20001b6bdff",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Dates",
           "id": "69492e33cfaac00001f07810",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Pista & Walnuts",
           "id": "69492e33cfaac00001f07812",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Dry Fruits & Seeds Mix",
+          "category": "Dry Fruits and Seeds Mix",
           "name": "Dried Fruits and Berries",
           "id": "69492e33cfaac00001f07814",
           "taxonomyType": "taxonomy 10"
@@ -241,43 +241,43 @@
       "refreshCycle": "daily",
       "subcategories": [
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Chips and Crisps",
           "id": "6903b0c295d8230001064c99",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Bhujia and Namkeens",
           "id": "6903b0c295d8230001064c9d",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Indian Snacks",
           "id": "6903b0c295d8230001064c9e",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Nachos",
           "id": "6903b0c295d8230001064c9a",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Puffs and Crunchies",
           "id": "6903b0c295d8230001064c9b",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Popcorn",
           "id": "6903b0c295d8230001064ca1",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Chips & Namkeens",
+          "category": "Chips and Namkeens",
           "name": "Baked and Roasted",
           "id": "6a1024275f9ab700014de9e0",
           "taxonomyType": "taxonomy 10"
@@ -355,97 +355,97 @@
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Biscuits & Cakes",
+          "category": "Biscuits and Cakes",
           "name": "Cookies",
           "id": "693c23bd4df316000117b884",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Biscuits & Cakes",
+          "category": "Biscuits and Cakes",
           "name": "Cream Biscuits",
           "id": "693c23bd4df316000117b885",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Biscuits & Cakes",
+          "category": "Biscuits and Cakes",
           "name": "Cakes & Pies",
           "id": "693c23bd4df316000117b882",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Biscuits & Cakes",
+          "category": "Biscuits and Cakes",
           "name": "Marie & Digestive",
           "id": "693c23bd4df316000117b88b",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Biscuits & Cakes",
+          "category": "Biscuits and Cakes",
           "name": "Rusk",
           "id": "693c23bd4df316000117b88f",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Ice Creams & Desserts",
+          "category": "Ice Creams and Frozen Desserts",
           "name": "Tubs & Party Packs",
           "id": "6903b0c295d8230001064c89",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Ice Creams & Desserts",
+          "category": "Ice Creams and Frozen Desserts",
           "name": "Cones",
           "id": "6903b0c295d8230001064c8a",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Ice Creams & Desserts",
+          "category": "Ice Creams and Frozen Desserts",
           "name": "Sticks",
           "id": "6903b0c295d8230001064c8b",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Ice Creams & Desserts",
+          "category": "Ice Creams and Frozen Desserts",
           "name": "Kulfi",
           "id": "6903b0c295d8230001064c8f",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Ice Creams & Desserts",
+          "category": "Ice Creams and Frozen Desserts",
           "name": "Cakes & Sandwiches",
           "id": "6903b0c295d8230001064c92",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Instant Noodles",
           "id": "693f772b01a77200013e29fc",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Korean Noodles",
           "id": "693f772b01a77200013e29fe",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Cup Noodles",
           "id": "693f772b01a77200013e29fd",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Instant Pasta",
           "id": "693f772b01a77200013e2a02",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Hakka Noodles",
           "id": "693f772b01a77200013e29ff",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Noodles, Pasta & Vermicelli",
+          "category": "Noodles, Pasta, Vermicelli",
           "name": "Vermicelli",
           "id": "693f772b01a77200013e2a03",
           "taxonomyType": "taxonomy 10"
@@ -469,10 +469,10 @@
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Frozen Food",
+          "category": "Fresh Vegetables",
           "name": "Frozen Vegetables",
-          "id": "693d82725485ff0001d3ec24",
-          "taxonomyType": "taxonomy 10"
+          "id": "68243edc0c0f930001b2188d",
+          "taxonomyType": "Speciality taxonomy 1"
         },
         {
           "category": "Frozen Food",
@@ -492,97 +492,97 @@
       "weeklyResetDay": 1,
       "subcategories": [
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "Non Toxic Cookware",
           "id": "69a6853c8ec23b0001d51dcb",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "Cookware",
           "id": "6903b179fe6d7500013a0d07",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "Kitchen Tools",
           "id": "6903b179fe6d7500013a0d0c",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "304 Stainless Steel",
           "id": "6a107175f653f400014e56ae",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "Serveware & Crockery",
           "id": "6903b179fe6d7500013a0d16",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Home & Kitchen",
+          "category": "Home and Kitchen",
           "name": "Bakeware & BBQ",
           "id": "6903b179fe6d7500013a0d0b",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Electronics & Appliances",
+          "category": "Electronics and Appliances",
           "name": "Personal Care Appliances",
           "id": "69b7c133958236000180ec1d",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Electronics & Appliances",
+          "category": "Electronics and Appliances",
           "name": "Earphones & headsets",
           "id": "6903b179fe6d7500013a0d61",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Pen,Pencils and markers",
           "id": "6903b179fe6d7500013a0d54",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Notebooks and Diaries",
           "id": "6903b179fe6d7500013a0d52",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Office stationery",
           "id": "6903b179fe6d7500013a0d53",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Art & Craft",
           "id": "6903b179fe6d7500013a0d49",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Colouring Supplies",
           "id": "6903b179fe6d7500013a0d50",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "School supplies",
           "id": "6903b179fe6d7500013a0d55",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "STEM & Learning",
           "id": "6903b179fe6d7500013a0d46",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Toys & Stationery",
+          "category": "Toys and Stationery",
           "name": "Books",
           "id": "6903b179fe6d7500013a0d4f",
           "taxonomyType": "IM Meatsy"
@@ -626,82 +626,98 @@
         {
           "name": "Top Deals",
           "id": "408822",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Dairy, Bread Eggs & More",
           "id": "377503",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Chocolates & Ice Creams",
           "id": "377513",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Munchies",
           "id": "377515",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Atta & Ghee",
           "id": "395522",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Beverages",
           "id": "377517",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Spreads & Dips",
           "id": "377520",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Cakes & Cookies",
           "id": "377510",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Indian Sweets",
           "id": "377514",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Chocolates",
           "id": "377516",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Dry Fruits",
           "id": "365176",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Veg Frozen Food",
           "id": "377519",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Non Veg Frozen Food",
           "id": "285297",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Chutneys & Pickles",
           "id": "377521",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Coffee",
           "id": "359943",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         },
         {
           "name": "Protein Bars",
           "id": "290645",
-          "isCollection": true
+          "isCollection": true,
+          "category": "The NOICE Store"
         }
       ]
     },
@@ -714,181 +730,181 @@
       "refreshCycle": "daily",
       "subcategories": [
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Soft Drinks",
           "id": "6903b0c295d8230001064c75",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Juices and Fruit Drinks",
           "id": "6903b0c295d8230001064c76",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Caffeinated Beverages",
           "id": "6903b0c295d8230001064c77",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Hydration Drinks",
           "id": "6a6b063ad570db00013754da",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Mango Drinks",
           "id": "6903b0c295d8230001064c7f",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Coconut Water",
           "id": "6903b0c295d8230001064c80",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Soda and Mixers",
           "id": "6903b0c295d8230001064c78",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Ice Tea & Kombucha",
           "id": "6903b0c295d8230001064c7c",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cold Drinks & Juices",
+          "category": "Cold Drinks and Juices",
           "name": "Diet Soft Drinks",
           "id": "6903b0c295d8230001064c7e",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Tea",
           "id": "6903b0c295d8230001064cfa",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Instant Coffee",
           "id": "6903b0c295d8230001064cfb",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Filter & Ground Coffee",
           "id": "6903b0c295d8230001064cfc",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Green & Herbal Tea",
           "id": "6903b0c295d8230001064cfd",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Cold Drinks and Juices",
           "name": "Cold Coffee",
-          "id": "6903b0c295d8230001064d00",
+          "id": "6903b0c295d8230001064c85",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Drink Mixes",
           "id": "6903b0c295d8230001064d01",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Tea, Coffee & Drinks",
+          "category": "Tea, Coffee and Milk drinks",
           "name": "Adult Nutrition",
           "id": "6903b0c295d8230001064d03",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Oats",
           "id": "69492faa195bc000019a3b0b",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Muesli & Granola",
           "id": "69492faa195bc000019a3b0a",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Flakes",
           "id": "69492faa195bc000019a3b0d",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Kids Cereals",
           "id": "69492faa195bc000019a3b0c",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Pancake Mixes",
           "id": "69492faa195bc000019a3b13",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Cereals & Breakfast",
+          "category": "Cereals and Breakfast",
           "name": "Ready Mixes",
           "id": "69492faa195bc000019a3b11",
           "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Sauces and Spreads",
           "name": "Tomato Ketchup",
           "id": "6903b0c295d8230001064cf0",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Cereals and Breakfast",
           "name": "Mayo & Spreads",
-          "id": "6903b0c295d8230001064cef",
-          "taxonomyType": "taxonomy 10"
+          "id": "69492faa195bc000019a3b16",
+          "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Cereals and Breakfast",
           "name": "Peanut Butters",
-          "id": "6903b0c295d8230001064cec",
-          "taxonomyType": "taxonomy 10"
+          "id": "69492faa195bc000019a3b14",
+          "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Cereals and Breakfast",
           "name": "Chocolate Spreads",
-          "id": "6903b0c295d8230001064ced",
-          "taxonomyType": "taxonomy 10"
+          "id": "69492faa195bc000019a3b15",
+          "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Cereals and Breakfast",
           "name": "Jams",
-          "id": "6903b0c295d8230001064cf7",
-          "taxonomyType": "taxonomy 10"
+          "id": "69492faa195bc000019a3b1b",
+          "taxonomyType": "taxonomy 5"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Sauces and Spreads",
           "name": "Honey and Cider Vineger",
           "id": "6903b0c295d8230001064cee",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Sauces and Spreads",
           "name": "Dips & Dressing",
           "id": "6903b0c295d8230001064cf6",
           "taxonomyType": "taxonomy 10"
         },
         {
-          "category": "Sauces & Spreads",
+          "category": "Sauces and Spreads",
           "name": "Asian Sauces",
           "id": "6903b0c295d8230001064cf3",
           "taxonomyType": "taxonomy 10"
@@ -904,45 +920,45 @@
       "refreshCycle": "daily",
       "subcategories": [
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Soaps",
           "id": "6903b10bd2c61b000112ba93",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Shower gel",
           "id": "6903b10bd2c61b000112baa4",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Handwash",
           "id": "6903b10bd2c61b000112ba94",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Body Lotion & Oils",
           "id": "6903b10bd2c61b000112ba9b",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Oral care",
           "id": "6903b10bd2c61b000112baa0",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Bath & Body",
+          "category": "Bath and Body",
           "name": "Fragrance & Talc",
           "id": "6903b10bd2c61b000112ba9c",
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Hair Care",
+          "category": "Bath and Body",
           "name": "Shampoo",
-          "id": "6903b10bd2c61b000112baae",
+          "id": "6903b10bd2c61b000112ba96",
           "taxonomyType": "taxonomy 14"
         },
         {
@@ -1018,55 +1034,55 @@
           "taxonomyType": "taxonomy 14"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Liquid Detergents",
           "id": "6903b179fe6d7500013a0d33",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Detergent Powders",
           "id": "6903b179fe6d7500013a0d32",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Laundry Additives",
           "id": "6903b179fe6d7500013a0d3d",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Dishwash Gel",
           "id": "6903b179fe6d7500013a0d3c",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Floor Cleaners",
           "id": "6903b179fe6d7500013a0d35",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Toilet Cleaners",
           "id": "6903b179fe6d7500013a0d38",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Bathroom Cleaning",
           "id": "6903b179fe6d7500013a0d39",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Mosquito Refills",
           "id": "6903b179fe6d7500013a0d3e",
           "taxonomyType": "IM Meatsy"
         },
         {
-          "category": "Cleaners & Repellents",
+          "category": "Cleaners and Repellents",
           "name": "Cockroach & Crawling insect killer",
           "id": "6903b179fe6d7500013a0d3b",
           "taxonomyType": "IM Meatsy"
