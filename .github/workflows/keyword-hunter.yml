@@ -59,7 +59,7 @@ jobs:
           LIFESTYLE_MIN_DISCOUNT: ${{ secrets.LIFESTYLE_MIN_DISCOUNT }}
           BEVERAGES_MIN_DISCOUNT: ${{ secrets.BEVERAGES_MIN_DISCOUNT }}
           PERSONAL_MIN_DISCOUNT: ${{ secrets.PERSONAL_MIN_DISCOUNT }}
-          USE_BROWSER: 'false'
+          USE_BROWSER: 'auto'
           SKIP_SYNC: ${{ inputs.skip_sync }}
         run: |
           EXTRA_FLAGS=""

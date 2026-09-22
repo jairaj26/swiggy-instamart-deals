@@ -791,8 +791,24 @@ async function fetchEssentialAisleDeals(storeConfig, options = {}) {
   const subcategories = options.subcategories || cfg.campaigns?.essentials?.subcategories || cfg.campaigns?.essentialAisles?.subcategories || [];
   const campaignName = options.campaignName || 'Aisles';
   const dealType = options.dealType || 'essential';
+  const canUseBrowser = process.env.USE_BROWSER !== 'false' && Boolean(findBrowserExecutable());
 
-  if (process.env.USE_BROWSER !== 'false' && findBrowserExecutable()) {
+  // Strategy 1: Try ultra-fast Direct HTTP fetch first (runs in ~15-20s if cookie or IP is clean)
+  if (process.env.USE_BROWSER !== 'true') {
+    const directItems = await fetchEssentialAisleDealsDirect(storeConfig, options);
+    if (directItems && directItems.length > 0) {
+      return directItems;
+    }
+    // If direct fetch returned 0 items due to CloudFront WAF challenge and a browser is available, fallback to browser
+    if (canUseBrowser) {
+      console.warn(`[SwiggyAPI] Direct HTTP fetch yielded 0 items (CloudFront WAF challenge). Automatically falling back to headless browser…`);
+    } else {
+      return directItems;
+    }
+  }
+
+  // Strategy 2: Headless Browser scraping (solves CloudFront WAF challenges automatically)
+  if (canUseBrowser) {
     try {
       console.log(`[SwiggyAPI] Scraping ${subcategories.length} ${campaignName} via Browser...`);
       return await scrapeWithBrowser('aisles', storeConfig, {
@@ -801,11 +817,11 @@ async function fetchEssentialAisleDeals(storeConfig, options = {}) {
         campaignName
       });
     } catch (err) {
-      console.warn(`[SwiggyAPI] Browser scrape for ${campaignName} failed, falling back to direct fetch…`, err.message);
+      console.error(`[SwiggyAPI] Browser scrape for ${campaignName} failed:`, err.message);
     }
   }
 
-  return fetchEssentialAisleDealsDirect(storeConfig, options);
+  return [];
 }
 
 module.exports = {
