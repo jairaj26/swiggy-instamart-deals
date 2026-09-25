@@ -42,11 +42,11 @@ for (let i = 0; i < args.length; i++) {
 }
 
 /**
- * Top-of-hour synchronization:
- * If the runner woke up early (e.g. at minute 55-59 in IST),
- * calculate remaining milliseconds to :00:00 sharp and wait.
+ * Top-of-hour synchronization with buffer:
+ * Ensures the deal scrape begins after Swiggy has fully updated its hourly deals
+ * (target: :00:30 IST, i.e., 30 seconds past the top of the hour).
  */
-async function syncToHourMark(skip = false) {
+async function syncToHourMark(skip = false, targetBufferSecs = 30) {
   if (skip) {
     console.log('[Sync] Top-of-hour synchronization skipped via --skip-sync.');
     return;
@@ -58,17 +58,26 @@ async function syncToHourMark(skip = false) {
   const secs = istNow.getUTCSeconds();
   const ms = istNow.getUTCMilliseconds();
 
+  // If runner booted in pre-hour window (55-59 IST), wait until :00:30 IST
   if (mins >= 55 && mins <= 59) {
     const minsLeft = 60 - mins;
-    const msToWait = (minsLeft * 60 * 1000) - (secs * 1000) - ms;
-    if (msToWait > 0 && msToWait <= 5 * 60 * 1000) {
+    const msToWait = (minsLeft * 60 * 1000) - (secs * 1000) - ms + (targetBufferSecs * 1000);
+    if (msToWait > 0 && msToWait <= 6 * 60 * 1000) {
       console.log(`[Sync] Runner woke up early at ${mins}:${String(secs).padStart(2, '0')} IST.`);
-      console.log(`[Sync] Waiting ${(msToWait / 1000).toFixed(1)}s until :00:00 IST sharp for fresh hourly deals...`);
+      console.log(`[Sync] Waiting ${(msToWait / 1000).toFixed(1)}s until :00:${String(targetBufferSecs).padStart(2, '0')} IST for fresh Swiggy hourly deals...`);
       await sleep(msToWait);
-      console.log('[Sync] Top of the hour reached (:00:00 IST)! Commencing deal scrape.');
+      console.log(`[Sync] Target time reached (:00:${String(targetBufferSecs).padStart(2, '0')} IST)! Commencing deal scrape.`);
+    }
+  } else if (mins === 0 && secs < targetBufferSecs) {
+    // If runner started in the first few seconds of the hour (< targetBufferSecs), wait until :00:30 IST
+    const msToWait = ((targetBufferSecs - secs) * 1000) - ms;
+    if (msToWait > 0) {
+      console.log(`[Sync] Runner started at :00:${String(secs).padStart(2, '0')} IST. Waiting ${(msToWait / 1000).toFixed(1)}s for Swiggy deals to propagate (:00:${String(targetBufferSecs).padStart(2, '0')} IST)...`);
+      await sleep(msToWait);
+      console.log(`[Sync] Target time reached (:00:${String(targetBufferSecs).padStart(2, '0')} IST)! Commencing deal scrape.`);
     }
   } else {
-    console.log(`[Sync] Running immediately (minute ${mins} is outside pre-hour window 55-59).`);
+    console.log(`[Sync] Running immediately at ${mins}:${String(secs).padStart(2, '0')} IST (already past :00:${String(targetBufferSecs).padStart(2, '0')} buffer).`);
   }
 }
 

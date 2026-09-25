@@ -2,9 +2,9 @@ name: Swiggy Instamart Keyword Deal Hunter
 
 on:
   schedule:
-    # Wakes up at minute 27 UTC between 04:27 and 16:27 UTC (09:57 AM to 09:57 PM IST).
-    # The runners boot up early (~30-40s), then syncToHourMark waits until :00:00 IST sharp (10:00 AM - 10:00 PM IST).
-    - cron: '27 4-16 * * *'
+    # Triggers at minute 30 UTC between 04:30 and 16:30 UTC (10:00 AM to 10:00 PM IST).
+    # The runner boots up in ~30-40s, syncing with Swiggy deal propagation (:00:30 IST).
+    - cron: '30 4-16 * * *'
   workflow_dispatch:
     inputs:
       skip_sync:
