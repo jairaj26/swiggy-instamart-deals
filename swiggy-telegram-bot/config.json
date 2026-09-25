@@ -725,7 +725,7 @@
       ]
     },
     "beverages": {
-      "name": "Cold Drinks, Beverages & Spreads",
+      "name": "Cold Drinks, Nutrition & Spreads",
       "tag": "🥤",
       "type": "subcategory",
       "enabled": true,
@@ -911,6 +911,30 @@
           "name": "Asian Sauces",
           "id": "6903b0c295d8230001064cf3",
           "taxonomyType": "taxonomy 10"
+        },
+        {
+          "category": "Health and Pharma",
+          "name": "Protein & Sports Nutrition",
+          "id": "6a574e8421b41f0001ef459a",
+          "taxonomyType": "taxonomy 14"
+        },
+        {
+          "category": "Health and Pharma",
+          "name": "Immunity & Energy Boosters",
+          "id": "6a57570521b41f0001ef459c",
+          "taxonomyType": "taxonomy 14"
+        },
+        {
+          "category": "Health and Pharma",
+          "name": "Weight Management",
+          "id": "6a57570521b41f0001ef459b",
+          "taxonomyType": "taxonomy 14"
+        },
+        {
+          "category": "Health and Pharma",
+          "name": "Superfoods",
+          "id": "6a57570521b41f0001ef459f",
+          "taxonomyType": "taxonomy 14"
         }
       ]
     },

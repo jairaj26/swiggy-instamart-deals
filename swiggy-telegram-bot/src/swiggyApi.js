@@ -121,7 +121,8 @@ const INSTAMART_CATEGORIES = {
   drinks: { name: 'Cold Drinks and Juices', tType: 'taxonomy 10', icon: '🥤' },
   tea: { name: 'Tea, Coffee and Milk drinks', tType: 'taxonomy 10', icon: '☕' },
   cleaning: { name: 'Cleaning Essentials', tType: 'Speciality taxonomy 1', icon: '🧼' },
-  personal: { name: 'Bath, Body and Hair', tType: 'taxonomy 14', icon: '✨' }
+  personal: { name: 'Bath, Body and Hair', tType: 'taxonomy 14', icon: '✨' },
+  pharma: { name: 'Health and Pharma', tType: 'taxonomy 14', icon: '💊' }
 };
 
 const NOICE_SUB_COLLECTIONS = [
