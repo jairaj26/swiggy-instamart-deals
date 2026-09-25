@@ -117,12 +117,12 @@ function getCanonicalItemKey(item) {
  *    - Weekly items (e.g. Electronics / Lifestyle): On weeklyResetDay (Monday) at cycle rollover,
  *      weekly deals refresh (WEEKLY_REFRESH / NEW_DEAL).
  * 2. Subsequent runs (Intra-day 11 AM to 10 PM IST):
- *    - Once an item is alerted during the cycle, it is SUPPRESSED for the remainder of the cycle.
+ *    - Once an item is alerted during the cycle, it is SUPPRESSED as long as its discount stays the SAME.
  *    - An item is re-alerted on the SAME day ONLY if:
  *        a) It is a NEW deal (never seen before in this cycle), OR
- *        b) It has a genuine PRICE DROP (cheaper price AND higher discount than previously alerted).
- *    - If an item goes out of stock or dips out of discount and returns later at the same discount,
- *      it is NOT re-alerted (BACK_IN_STOCK re-alerts are disabled to prevent duplicate spam).
+ *        b) Its DISCOUNT PERCENTAGE HAS CHANGED (e.g. 70% -> 80% or 80% -> 75%) while still meeting threshold.
+ *    - If an item goes out of stock or dips out of discount and returns later at the SAME discount,
+ *      it is NOT re-alerted (suppresses redundant come-and-go spam).
  */
 function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', options = {}) {
   const cache = loadCache(campaignKey);
@@ -195,13 +195,12 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
     const isFirstRunOfItemCycle = isItemWeekly ? isWeeklyFirstRun : isDailyFirstRun;
 
     const prev = cache.items[itemKey];
-    const prevAlertedDisc = prev ? (prev.lastAlertedDiscount !== undefined ? prev.lastAlertedDiscount : prev.discount) : 0;
-    const prevAlertedPrice = prev ? (prev.lastAlertedPrice !== undefined ? prev.lastAlertedPrice : prev.price) : Infinity;
+    const prevAlertedDisc = prev ? (prev.lastAlertedDiscount !== undefined ? prev.lastAlertedDiscount : prev.discount) : null;
+    const prevAlertedPrice = prev ? (prev.lastAlertedPrice !== undefined ? prev.lastAlertedPrice : prev.price) : null;
 
-    // Meaningful price improvement: price strictly lower AND discount percentage strictly higher
-    const isPriceDrop = prev && (
-      item.price < prevAlertedPrice && item.discount > prevAlertedDisc
-    );
+    // Has discount percentage changed from the last alerted discount?
+    const isDiscountChange = prev && prevAlertedDisc !== null && (item.discount !== prevAlertedDisc);
+    const isPriceDrop = isDiscountChange && (item.discount > prevAlertedDisc);
 
     const alreadyAlertedInCycle = prev && (
       (prev.lastAlertedCycle && prev.lastAlertedCycle === itemCycleId) ||
@@ -219,14 +218,13 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       // Brand new item or first time meeting criteria in this cycle
       shouldAlert = true;
       alertType = 'NEW_DEAL';
-    } else if (isPriceDrop) {
-      // Price dropped lower AND discount increased higher than last alerted in this cycle
+    } else if (isDiscountChange) {
+      // Discount percentage changed while still meeting threshold (e.g., 70% -> 80% or 80% -> 75%)
       shouldAlert = true;
-      alertType = 'PRICE_DROP';
+      alertType = isPriceDrop ? 'PRICE_DROP' : 'DISCOUNT_CHANGE';
     } else {
-      // Already alerted in this cycle at the same or higher price:
-      // Suppress duplicate alert for the entire day (daily) or entire week (weekly)
-      // Even if item flickered out of stock or fell out of discount and returned at the same price.
+      // Already alerted in this cycle at the SAME discount:
+      // Suppress duplicate alert (even if item flickered out of stock or below threshold and returned at same discount).
       shouldAlert = false;
     }
 
