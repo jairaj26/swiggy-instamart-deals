@@ -5,6 +5,9 @@
     "secid": ""
   },
   "minDiscount": 70,
+  "weeklyCategories": [
+    "Electronics and Appliances"
+  ],
   "campaigns": {
     "essentials": {
       "name": "Daily Essentials & Fresh",

@@ -109,9 +109,11 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
   if (items.length > 0) {
     const refreshCycle = campaignCfg.refreshCycle || 'daily';
     const weeklyResetDay = campaignCfg.weeklyResetDay !== undefined ? campaignCfg.weeklyResetDay : 1;
+    const weeklyCategories = campaignCfg.weeklyCategories || config.weeklyCategories || ['Electronics and Appliances'];
     const alerts = findAlertWorthyDeals(items, threshold, campaignKey, {
       refreshCycle,
-      weeklyResetDay
+      weeklyResetDay,
+      weeklyCategories
     });
     console.log(`[${campaignKey}] Found ${alerts.length} alert-worthy deals (Discount ≥ ${threshold}% | Cycle: ${refreshCycle}).`);
     if (bot && chatId && alerts.length > 0) {
