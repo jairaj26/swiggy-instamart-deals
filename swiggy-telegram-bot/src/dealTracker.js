@@ -108,6 +108,37 @@ function getCanonicalItemKey(item) {
   return (item.name || '').trim().toLowerCase() || String(item.skuId || '');
 }
 
+function isStaticCooldownCandidate(item) {
+  const cat = (item.category || '').toLowerCase();
+  const sub = (item.subCategory || '').toLowerCase();
+  const name = (item.name || '').toLowerCase();
+
+  // 1. Decor items in Home & Kitchen or anywhere
+  if (sub.includes('decor') || name.includes('decor') || name.includes('string light') || name.includes('fairy light') || name.includes('diya') || name.includes('candle') || name.includes('lamp')) {
+    return true;
+  }
+
+  // 2. Electronics: Cables, Chargers, Batteries, Extensions, Lights
+  if (sub.includes('cable') || sub.includes('charger') || sub.includes('battery') || sub.includes('light') || sub.includes('bulb')) {
+    return true;
+  }
+  if (name.includes('cable') || name.includes('charging') || name.includes('cord') || name.includes('adapter')) {
+    return true;
+  }
+
+  // 3. Smartwatches
+  if (sub.includes('smartwatch') || name.includes('smartwatch') || name.includes('smart watch')) {
+    return true;
+  }
+
+  // 4. Inflated-MRP Brands: Dubstep, Hammer, boAt, Noise
+  if (/\b(dubstep|hammer|boat|bo-at|noise)\b/i.test(name)) {
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Evaluates a list of fetched items against the minimum discount threshold.
  * 
@@ -124,6 +155,9 @@ function getCanonicalItemKey(item) {
  *        b) Its DISCOUNT PERCENTAGE HAS CHANGED (e.g. 70% -> 80% or 80% -> 75%) while still meeting threshold.
  *    - If an item goes out of stock or dips out of discount and returns later at the SAME discount,
  *      it is NOT re-alerted (suppresses redundant come-and-go spam).
+ * 3. 15-Day Static Price Cooldown:
+ *    - Decor items, Cables, Smartwatches, and inflated-MRP brands (Dubstep, Hammer, boAt, Noise)
+ *      are suppressed for 15 days if their price does not drop below their last alerted price.
  */
 function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', options = {}) {
   const cache = loadCache(campaignKey);
@@ -152,7 +186,13 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
 
   for (const item of items) {
     let threshold = 70;
-    if (typeof minDiscount === 'object' && minDiscount !== null) {
+    if (item.minDiscount !== undefined && item.minDiscount !== null) {
+      threshold = item.minDiscount;
+    } else if (item.threshold !== undefined && item.threshold !== null) {
+      threshold = item.threshold;
+    } else if (options.categoryThresholds && options.categoryThresholds[item.category]) {
+      threshold = options.categoryThresholds[item.category];
+    } else if (typeof minDiscount === 'object' && minDiscount !== null) {
       threshold = item.dealType === 'essential'
         ? (minDiscount.essentials || 70)
         : (minDiscount.nonEssentials || 70);
@@ -229,6 +269,21 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       shouldAlert = false;
     }
 
+    // 15-Day Static Price Cooldown:
+    // If item is a candidate (Decor, Cables, Smartwatches, Hammer/boAt/Noise/Dubstep),
+    // and was previously alerted, suppress if its price hasn't dropped within 15 days.
+    const isCooldownCandidate = isStaticCooldownCandidate(item);
+    if (shouldAlert && isCooldownCandidate && prev && (prev.lastAlertedPrice !== undefined && prev.lastAlertedPrice !== null)) {
+      const isPriceSameOrHigher = item.price >= prev.lastAlertedPrice;
+      const lastAlertTime = prev.lastAlertedTimestamp || (prev.lastAlertedDate ? new Date(prev.lastAlertedDate).getTime() : 0);
+      const daysSinceAlert = (now - lastAlertTime) / (24 * 60 * 60 * 1000);
+
+      if (isPriceSameOrHigher && daysSinceAlert < 15) {
+        // Price has not dropped and 15-day cooldown has not expired: suppress alert
+        shouldAlert = false;
+      }
+    }
+
     if (shouldAlert) {
       const alertObj = {
         ...item,
@@ -253,6 +308,7 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
         lastAlertedPrice: item.price,
         lastAlertedDiscount: item.discount,
         lastAlertedDate: dateStr,
+        lastAlertedTimestamp: now,
         lastAlertedHour: hour,
         lastAlertedCycle: itemCycleId,
         lastSeenRunId: runId,

@@ -205,6 +205,8 @@ async function main() {
   let runBeverages = false;
   let runPersonal = false;
   let runLifestyle = false;
+  let runHousehold = false;
+  let runClearance = false;
   let runNoice = false;
 
   if (mode === 'fresh' || mode === 'produce') {
@@ -218,8 +220,12 @@ async function main() {
     runTreats = true;
   } else if (mode === 'munchies' || mode === 'snacks') {
     runMunchies = true;
-  } else if (mode === 'lifestyle' || mode === 'home' || mode === 'electronics' || mode === 'baby') {
+  } else if (mode === 'lifestyle' || mode === 'baby') {
     runLifestyle = true;
+  } else if (mode === 'household' || mode === 'cleaning') {
+    runHousehold = true;
+  } else if (mode === 'clearance') {
+    runClearance = true;
   } else if (mode === 'beverages' || mode === 'drinks' || mode === 'juices') {
     runBeverages = true;
   } else if (mode === 'personal' || mode === 'personalcare') {
@@ -237,6 +243,8 @@ async function main() {
       runBeverages = true;
       runPersonal = true;
       runLifestyle = true;
+      runHousehold = true;
+      runClearance = true;
     }
   }
 
@@ -325,6 +333,32 @@ async function main() {
     const cfg = campaigns.lifestyle || {};
     const threshold = parseInt(process.env.LIFESTYLE_MIN_DISCOUNT, 10) || cfg.minDiscount || 85;
     await runSubcategoryCampaign('lifestyle', cfg, {
+      bot,
+      chatId,
+      storeConfig,
+      threshold,
+      timeString
+    });
+  }
+
+  // 8. Worker 8: Cleaning, Home & Electronics
+  if (runHousehold) {
+    const cfg = campaigns.household || campaigns.cleaning || {};
+    const threshold = parseInt(process.env.HOUSEHOLD_MIN_DISCOUNT || process.env.CLEANING_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
+    await runSubcategoryCampaign('household', cfg, {
+      bot,
+      chatId,
+      storeConfig,
+      threshold,
+      timeString
+    });
+  }
+
+  // 9. Worker 9: High-Discount Clearance Specials
+  if (runClearance) {
+    const cfg = campaigns.clearance || {};
+    const threshold = parseInt(process.env.CLEARANCE_MIN_DISCOUNT, 10) || cfg.minDiscount || 89;
+    await runSubcategoryCampaign('clearance', cfg, {
       bot,
       chatId,
       storeConfig,

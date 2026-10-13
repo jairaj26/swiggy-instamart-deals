@@ -20,9 +20,9 @@ jobs:
     timeout-minutes: 10
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 6
       matrix:
-        worker: [fresh, grocery, treats, munchies, beverages, personal, lifestyle]
+        worker: [fresh, grocery, treats, munchies, beverages, personal, lifestyle, household, clearance]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -63,6 +63,8 @@ jobs:
           LIFESTYLE_MIN_DISCOUNT: ${{ secrets.LIFESTYLE_MIN_DISCOUNT }}
           BEVERAGES_MIN_DISCOUNT: ${{ secrets.BEVERAGES_MIN_DISCOUNT }}
           PERSONAL_MIN_DISCOUNT: ${{ secrets.PERSONAL_MIN_DISCOUNT }}
+          HOUSEHOLD_MIN_DISCOUNT: ${{ secrets.HOUSEHOLD_MIN_DISCOUNT }}
+          CLEARANCE_MIN_DISCOUNT: ${{ secrets.CLEARANCE_MIN_DISCOUNT }}
           USE_BROWSER: 'true'
           SKIP_SYNC: ${{ inputs.skip_sync }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}

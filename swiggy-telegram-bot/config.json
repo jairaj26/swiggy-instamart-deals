@@ -2148,6 +2148,747 @@
           "category": "The NOICE Store"
         }
       ]
+    },
+    "household": {
+      "name": "Cleaning, Home & Electronics",
+      "tag": "🧹",
+      "type": "aisles",
+      "enabled": true,
+      "minDiscount": 70,
+      "refreshCycle": "daily",
+      "subcategories": [
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Liquid Detergents",
+          "id": "6903b179fe6d7500013a0d33",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Repellent",
+          "id": "6903b179fe6d7500013a0d42",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Mosquito Refills",
+          "id": "6903b179fe6d7500013a0d3e",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Detergent Powders",
+          "id": "6903b179fe6d7500013a0d32",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Racquets",
+          "id": "6903b179fe6d7500013a0d3f",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Laundry Additives",
+          "id": "6903b179fe6d7500013a0d3d",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Cockroach & Crawling insect killer",
+          "id": "6903b179fe6d7500013a0d3b",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Tissues & Disposables",
+          "id": "6a3a643a60f2a90001f51437",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Dishwash Gel",
+          "id": "6903b179fe6d7500013a0d3c",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Toilet Cleaners",
+          "id": "6903b179fe6d7500013a0d38",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Mosquito Repellent",
+          "id": "6903b179fe6d7500013a0d43",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Surface Disinfectants",
+          "id": "6903b179fe6d7500013a0d41",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Top Deals",
+          "id": "69706f26a176a40001054615",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Rat Repellent",
+          "id": "6903b179fe6d7500013a0d40",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Brooms & Mops",
+          "id": "6903b179fe6d7500013a0d34",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Dustbins & Pans",
+          "id": "6903b179fe6d7500013a0d36",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Wipes & Scrubs",
+          "id": "6903b179fe6d7500013a0d3a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Kitchen Cleaning",
+          "id": "6903b179fe6d7500013a0d37",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Bathroom Cleaning",
+          "id": "6903b179fe6d7500013a0d39",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Cleaners and Repellents",
+          "name": "Floor Cleaners",
+          "id": "6903b179fe6d7500013a0d35",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 70
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Premium Storage Brands",
+          "id": "6a107175f653f400014e56af",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Home decor",
+          "id": "6903b179fe6d7500013a0d13",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Linen & Furnishing",
+          "id": "6903b179fe6d7500013a0d14",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Jars & Containers",
+          "id": "6903b179fe6d7500013a0d09",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Bottles, Flask and Tumblers",
+          "id": "6903b179fe6d7500013a0d0a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Tiffins & Lunch Bag",
+          "id": "6a27ff73600211000131660a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Bath and laundry",
+          "id": "6903b179fe6d7500013a0d0e",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Tissues & Disposables",
+          "id": "6903b179fe6d7500013a0d18",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Home Utility",
+          "id": "6a27ff73600211000131660b",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Storage Organizers & Utility",
+          "id": "6903b179fe6d7500013a0d17",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "cups and mugs",
+          "id": "6903b179fe6d7500013a0d10",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Gardening",
+          "id": "6903b179fe6d7500013a0d11",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Glasses & Barware",
+          "id": "6903b179fe6d7500013a0d12",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Air Freshners",
+          "id": "6903b179fe6d7500013a0d0d",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Vehicale care & Accessories",
+          "id": "6903b179fe6d7500013a0d19",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Party Planning",
+          "id": "6903b179fe6d7500013a0d15",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Home and Kitchen",
+          "name": "Cleaning tools",
+          "id": "6903b179fe6d7500013a0d0f",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 85
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Mobiles",
+          "id": "6903b179fe6d7500013a0d67",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 60
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Kitchen Appliances",
+          "id": "6903b179fe6d7500013a0d64",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 75
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Speakers & Soundbars",
+          "id": "6903b179fe6d7500013a0d6b",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Laptops, Tablets and Monitors",
+          "id": "6903b179fe6d7500013a0d65",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 60
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Home Appliances",
+          "id": "6903b179fe6d7500013a0d63",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Powerbanks Chargers Cables",
+          "id": "6903b179fe6d7500013a0d68",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Smartwatches",
+          "id": "6903b179fe6d7500013a0d6a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Health Care Appliances",
+          "id": "6903b179fe6d7500013a0d62",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 75
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Lights & Bulbs",
+          "id": "6903b179fe6d7500013a0d66",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Energy Saver Fans",
+          "id": "69b92d8c91ebf20001c1496f",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Batteries & Extensions",
+          "id": "6903b179fe6d7500013a0d5f",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Computer Accessories",
+          "id": "6903b179fe6d7500013a0d60",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Top Deals",
+          "id": "69706f26a176a40001054616",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Electric Kettles",
+          "id": "6903b179fe6d7500013a0d5c",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 75
+        },
+        {
+          "category": "Electronics and Appliances",
+          "name": "Smart & Streaming Devices",
+          "id": "6903b179fe6d7500013a0d69",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        }
+      ]
+    },
+    "clearance": {
+      "name": "Clearance Specials (Fashion, Toys & Baby)",
+      "tag": "🏷️",
+      "type": "aisles",
+      "enabled": true,
+      "minDiscount": 89,
+      "refreshCycle": "daily",
+      "subcategories": [
+        {
+          "category": "Fashion",
+          "name": "T- Shirt",
+          "id": "6903b179fe6d7500013a0d7c",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Menswear",
+          "id": "6903b179fe6d7500013a0d77",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Womenswear",
+          "id": "6903b179fe6d7500013a0d7b",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Watches",
+          "id": "6903b179fe6d7500013a0d7e",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Hair Accessories",
+          "id": "6903b179fe6d7500013a0d73",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Sunglasses",
+          "id": "6903b179fe6d7500013a0d79",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Chains & Necklace",
+          "id": "6903b179fe6d7500013a0d71",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Bangles & Bracelets",
+          "id": "6903b179fe6d7500013a0d6f",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Handbags & Purses",
+          "id": "6903b179fe6d7500013a0d74",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Earrings",
+          "id": "6903b179fe6d7500013a0d72",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Precious coins & Articles",
+          "id": "6903b179fe6d7500013a0d78",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Trolley & Backpacks",
+          "id": "6903b179fe6d7500013a0d7a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Anklets, Rings & More",
+          "id": "6903b179fe6d7500013a0d6e",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Kids Accessories",
+          "id": "6903b179fe6d7500013a0d75",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Fashion",
+          "name": "Kidswear",
+          "id": "6903b179fe6d7500013a0d76",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Die-cast cars",
+          "id": "69bcff6db56c7a0001b3e7a8",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Safe play toys",
+          "id": "69bcff6db56c7a0001b3e7a7",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Screen Time Replacement",
+          "id": "6a181a584ad6960001549a59",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Toy cars and guns",
+          "id": "6903b179fe6d7500013a0d47",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Card and Board Games",
+          "id": "6903b179fe6d7500013a0d45",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Soft Toys",
+          "id": "6903b179fe6d7500013a0d56",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Dolls & pretend kits",
+          "id": "6903b179fe6d7500013a0d51",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Action Figurines",
+          "id": "6903b179fe6d7500013a0d4a",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Building Blocks, Puzzles & More",
+          "id": "6903b179fe6d7500013a0d48",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Baby & Musical toys",
+          "id": "6903b179fe6d7500013a0d4d",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Outdoor Toys",
+          "id": "6903b179fe6d7500013a0d4b",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Tiffin & Lunch boxes",
+          "id": "6903b179fe6d7500013a0d57",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Scooters and Ride ons",
+          "id": "6903b179fe6d7500013a0d4c",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Toys and Stationery",
+          "name": "Bags",
+          "id": "6903b179fe6d7500013a0d4e",
+          "taxonomyType": "IM Meatsy",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Diapers",
+          "id": "6903b10bd2c61b000112baef",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Food and Formula",
+          "id": "6903b10bd2c61b000112baf0",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Wipes",
+          "id": "6903b10bd2c61b000112baf2",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Feeding and Teething Needs",
+          "id": "6903b10bd2c61b000112baf8",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Oil and Talc",
+          "id": "6903b10bd2c61b000112baf6",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Hygiene",
+          "id": "6903b10bd2c61b000112bafa",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Books and Toys",
+          "id": "6903b10bd2c61b000112baf9",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Travel Needs & Baby Gears",
+          "id": "6903b10bd2c61b000112bafe",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Baby Pharma",
+          "id": "6903b10bd2c61b000112baf7",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Clothes & Accessories",
+          "id": "6903b10bd2c61b000112bafb",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Baby Care",
+          "name": "Mom Care",
+          "id": "6903b10bd2c61b000112bafd",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Lips",
+          "id": "6903b10bd2c61b000112bac2",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Eyes",
+          "id": "6903b10bd2c61b000112bac3",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Face",
+          "id": "6903b10bd2c61b000112bac5",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Nails",
+          "id": "6903b10bd2c61b000112bac7",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Tools & Brushes",
+          "id": "6903b10bd2c61b000112bac8",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Makeup",
+          "name": "Beauty Supplements",
+          "id": "6903b10bd2c61b000112bac9",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Sexual Wellness",
+          "name": "Condoms",
+          "id": "6903b10bd2c61b000112bad4",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Sexual Wellness",
+          "name": "Lubricants",
+          "id": "6903b10bd2c61b000112bad5",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Sexual Wellness",
+          "name": "Massagers",
+          "id": "6903b10bd2c61b000112bad6",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Sexual Wellness",
+          "name": "Enhancers",
+          "id": "6903b10bd2c61b000112bad7",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        },
+        {
+          "category": "Sexual Wellness",
+          "name": "Gift Kits",
+          "id": "6903b10bd2c61b000112bad8",
+          "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        }
+      ]
     }
   }
 }

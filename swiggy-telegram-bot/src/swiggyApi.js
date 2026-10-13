@@ -379,7 +379,9 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
               fJson._meta = {
                 category: item.category,
                 subCategory: item.name,
-                dealType: opt.dealType || 'essential'
+                dealType: opt.dealType || 'essential',
+                threshold: item.minDiscount || item.threshold,
+                minDiscount: item.minDiscount || item.threshold
               };
               rawPages.push(fJson);
             }
@@ -501,6 +503,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         if (meta.dealType) item.dealType = meta.dealType;
         if (meta.query) item.searchQuery = meta.query;
         if (meta.threshold) item.threshold = meta.threshold;
+        if (meta.minDiscount) item.minDiscount = meta.minDiscount;
 
         const existing = resultMap.get(item.name);
         if (!existing || item.price < existing.price) {
