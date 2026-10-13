@@ -59,13 +59,13 @@ async function syncToHourMark(skip = false, targetBufferSecs = 30) {
   const ms = istNow.getUTCMilliseconds();
 
   // Staleness Guard for GitHub scheduled runs:
-  // Slots run at :01 (mins 00-15) and :31 (mins 30-45).
-  // If runner queue delays execution by >15 minutes (mins 16-29 or 46-59),
-  // drop the stale run to prevent delayed alerts (e.g. 1:20 AM).
+  // Slots run at :01 (mins 00-25) and :31 (mins 30-55).
+  // If runner queue delays execution by >25 minutes,
+  // drop the stale run to prevent overlapping alerts or late-night executions.
   const isGitHubScheduled = process.env.GITHUB_EVENT_NAME === 'schedule';
   if (isGitHubScheduled) {
     const delayMins = (mins >= 30) ? (mins - 30) : mins;
-    if (delayMins > 15) {
+    if (delayMins > 25) {
       console.warn(`[Sync] ⚠️ GitHub Actions runner queue was delayed by ~${delayMins}m past the target slot (:01/:31).`);
       console.warn(`[Sync] Current time is ${String(istNow.getUTCHours()).padStart(2, '0')}:${String(mins).padStart(2, '0')} IST.`);
       console.warn(`[Sync] Aborting stale scheduled run to avoid sending outdated deals.`);

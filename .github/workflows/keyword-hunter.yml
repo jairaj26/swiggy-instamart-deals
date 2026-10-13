@@ -3,10 +3,8 @@ name: Swiggy Instamart Keyword Deal Hunter
 on:
   schedule:
     # 30-Minute Interval Deal Hunter (09:01 AM to 12:01 AM midnight IST):
-    # Slot 1 (:01 past hour): 09:01 AM IST (03:31 UTC) through 12:01 AM midnight IST (18:31 UTC)
-    - cron: '31 3-18 * * *'
-    # Slot 2 (:31 past hour): 09:31 AM IST (04:01 UTC) through 11:31 PM IST (18:01 UTC)
-    - cron: '1 4-18 * * *'
+    # Runs at :01 and :31 past the hour (03:31 UTC = 09:01 AM IST through 18:31 UTC = 12:01 AM midnight IST)
+    - cron: '1,31 3-18 * * *'
   workflow_dispatch:
     inputs:
       skip_sync:
