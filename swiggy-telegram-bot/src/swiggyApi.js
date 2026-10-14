@@ -390,6 +390,43 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           await pSleep(200 + Math.random() * 100);
         }
 
+        const searchKeywords = opt.searchKeywords || [];
+        for (let k = 0; k < searchKeywords.length; k++) {
+          const kw = searchKeywords[k];
+          const queryStr = typeof kw === 'string' ? kw : kw.query;
+          const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+          const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+          const searchBody = {
+            facets: [],
+            sortAttribute: 'discountPercentHighToLow',
+            query: queryStr,
+            search_results_offset: '0',
+            page_type: 'INSTAMART_SEARCH_PAGE',
+            is_pre_search_tag: false
+          };
+
+          try {
+            const sRes = await fetch(searchUrl, {
+              method: 'POST',
+              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+              body: JSON.stringify(searchBody),
+              credentials: 'include'
+            });
+            const sJson = await sRes.json();
+            if (sJson?.data) {
+              sJson._meta = {
+                dealType: opt.dealType || 'essential',
+                query: queryStr,
+                threshold: kwThreshold,
+                minDiscount: kwThreshold
+              };
+              rawPages.push(sJson);
+            }
+          } catch (e) {}
+
+          await pSleep(200 + Math.random() * 100);
+        }
+
         return { rawPages };
       }
 
@@ -489,6 +526,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       categoryObj: options.categoryObj,
       keywordItems: options.keywordItems,
       subcategories: options.subcategories,
+      searchKeywords: options.searchKeywords,
       dealType: options.dealType,
       onProgress: !!options.onProgress
     });
@@ -500,6 +538,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       for (const item of items) {
         if (meta.category) item.category = meta.category;
         if (meta.subCategory) item.subCategory = meta.subCategory;
+        if (!item.category && meta.dealType) item.category = meta.dealType;
         if (meta.dealType) item.dealType = meta.dealType;
         if (meta.query) item.searchQuery = meta.query;
         if (meta.threshold) item.threshold = meta.threshold;
@@ -785,15 +824,52 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
     await sleep(350);
   }
 
+  const searchKeywords = options.searchKeywords || [];
+  if (searchKeywords.length > 0) {
+    console.log(`[SwiggyAPI] Searching ${searchKeywords.length} keywords for ${campaignName}...`);
+    for (const kw of searchKeywords) {
+      const queryStr = typeof kw === 'string' ? kw : kw.query;
+      const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+      const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+      const searchBody = {
+        facets: [],
+        sortAttribute: 'discountPercentHighToLow',
+        query: queryStr,
+        search_results_offset: '0',
+        page_type: 'INSTAMART_SEARCH_PAGE',
+        is_pre_search_tag: false
+      };
+
+      const json = await apiRequestSafe(searchUrl, 'POST', searchBody);
+      if (json?.data) {
+        const items = parseItemsFromData(json);
+        for (const it of items) {
+          it.dealType = dealType;
+          if (kwThreshold) {
+            it.threshold = kwThreshold;
+            it.minDiscount = kwThreshold;
+          }
+          it.searchQuery = queryStr;
+          const existing = resultMap.get(it.name);
+          if (!existing || it.price < existing.price) {
+            resultMap.set(it.name, it);
+          }
+        }
+      }
+      await sleep(250);
+    }
+  }
+
   const allItems = Array.from(resultMap.values());
   allItems.sort((a, b) => b.discount - a.discount);
-  console.log(`[SwiggyAPI] Scraped ${allItems.length} unique items across ${subcategories.length} ${campaignName}.`);
+  console.log(`[SwiggyAPI] Scraped ${allItems.length} unique items across ${subcategories.length} ${campaignName} and ${searchKeywords.length} keywords.`);
   return allItems;
 }
 
 async function fetchEssentialAisleDeals(storeConfig, options = {}) {
   const cfg = require('../config.json');
   const subcategories = options.subcategories || cfg.campaigns?.essentials?.subcategories || cfg.campaigns?.essentialAisles?.subcategories || [];
+  const searchKeywords = options.searchKeywords || [];
   const campaignName = options.campaignName || 'Aisles';
   const dealType = options.dealType || 'essential';
   const canUseBrowser = process.env.USE_BROWSER !== 'false' && Boolean(findBrowserExecutable());
@@ -815,9 +891,10 @@ async function fetchEssentialAisleDeals(storeConfig, options = {}) {
   // Strategy 2: Headless Browser scraping (solves CloudFront WAF challenges automatically)
   if (canUseBrowser) {
     try {
-      console.log(`[SwiggyAPI] Scraping ${subcategories.length} ${campaignName} via Browser...`);
+      console.log(`[SwiggyAPI] Scraping ${subcategories.length} aisles & ${searchKeywords.length} keywords for ${campaignName} via Browser...`);
       return await scrapeWithBrowser('aisles', storeConfig, {
         subcategories,
+        searchKeywords,
         dealType,
         campaignName
       });

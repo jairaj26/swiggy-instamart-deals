@@ -305,6 +305,40 @@
           "id": "6822eeeded32000001e25b49",
           "taxonomyType": "Speciality taxonomy 1"
         }
+      ],
+      "searchKeywords": [
+        {
+          "query": "cheese",
+          "minDiscount": 60
+        },
+        {
+          "query": "butter",
+          "minDiscount": 60
+        },
+        {
+          "query": "paneer",
+          "minDiscount": 60
+        },
+        {
+          "query": "curd",
+          "minDiscount": 60
+        },
+        {
+          "query": "chicken",
+          "minDiscount": 60
+        },
+        {
+          "query": "mutton",
+          "minDiscount": 60
+        },
+        {
+          "query": "fish",
+          "minDiscount": 60
+        },
+        {
+          "query": "eggs",
+          "minDiscount": 60
+        }
       ]
     },
     "grocery": {
@@ -657,6 +691,52 @@
           "id": "69492faa195bc000019a3b09",
           "taxonomyType": "taxonomy 5"
         }
+      ],
+      "searchKeywords": [
+        {
+          "query": "ghee",
+          "minDiscount": 60
+        },
+        {
+          "query": "oil",
+          "minDiscount": 60
+        },
+        {
+          "query": "cooking oil",
+          "minDiscount": 60
+        },
+        {
+          "query": "atta",
+          "minDiscount": 60
+        },
+        {
+          "query": "rice",
+          "minDiscount": 60
+        },
+        {
+          "query": "basmati",
+          "minDiscount": 60
+        },
+        {
+          "query": "dal",
+          "minDiscount": 60
+        },
+        {
+          "query": "spices",
+          "minDiscount": 60
+        },
+        {
+          "query": "masala",
+          "minDiscount": 60
+        },
+        {
+          "query": "honey",
+          "minDiscount": 60
+        },
+        {
+          "query": "seasoning",
+          "minDiscount": 60
+        }
       ]
     },
     "treats": {
@@ -1003,6 +1083,40 @@
           "id": "693c23bd4df316000117b886",
           "taxonomyType": "taxonomy 10"
         }
+      ],
+      "searchKeywords": [
+        {
+          "query": "sweets",
+          "minDiscount": 70
+        },
+        {
+          "query": "chocolates",
+          "minDiscount": 70
+        },
+        {
+          "query": "ice cream",
+          "minDiscount": 70
+        },
+        {
+          "query": "cake",
+          "minDiscount": 70
+        },
+        {
+          "query": "cookies",
+          "minDiscount": 70
+        },
+        {
+          "query": "biscuits",
+          "minDiscount": 70
+        },
+        {
+          "query": "dessert",
+          "minDiscount": 70
+        },
+        {
+          "query": "noice",
+          "minDiscount": 70
+        }
       ]
     },
     "munchies": {
@@ -1288,6 +1402,52 @@
           "name": "Premium dry Fruits",
           "id": "6970b51fb9ed3d00010081ee",
           "taxonomyType": "taxonomy 10"
+        }
+      ],
+      "searchKeywords": [
+        {
+          "query": "dry fruits",
+          "minDiscount": 70
+        },
+        {
+          "query": "almonds",
+          "minDiscount": 70
+        },
+        {
+          "query": "cashew",
+          "minDiscount": 70
+        },
+        {
+          "query": "walnut",
+          "minDiscount": 70
+        },
+        {
+          "query": "namkeen",
+          "minDiscount": 70
+        },
+        {
+          "query": "chips",
+          "minDiscount": 70
+        },
+        {
+          "query": "noodles",
+          "minDiscount": 70
+        },
+        {
+          "query": "pasta",
+          "minDiscount": 70
+        },
+        {
+          "query": "protein bar",
+          "minDiscount": 70
+        },
+        {
+          "query": "makhana",
+          "minDiscount": 70
+        },
+        {
+          "query": "peanut butter",
+          "minDiscount": 70
         }
       ]
     },
@@ -1593,6 +1753,40 @@
           "id": "6a57570521b41f0001ef459f",
           "taxonomyType": "taxonomy 14"
         }
+      ],
+      "searchKeywords": [
+        {
+          "query": "whey protein",
+          "minDiscount": 70
+        },
+        {
+          "query": "protein powder",
+          "minDiscount": 70
+        },
+        {
+          "query": "coffee",
+          "minDiscount": 70
+        },
+        {
+          "query": "tea",
+          "minDiscount": 70
+        },
+        {
+          "query": "juice",
+          "minDiscount": 70
+        },
+        {
+          "query": "energy drink",
+          "minDiscount": 70
+        },
+        {
+          "query": "syrup",
+          "minDiscount": 70
+        },
+        {
+          "query": "spread",
+          "minDiscount": 70
+        }
       ]
     },
     "personalCare": {
@@ -1884,6 +2078,44 @@
           "name": "Disposal Bags and Cramp Relief",
           "id": "6903b10bd2c61b000112bad2",
           "taxonomyType": "taxonomy 14"
+        }
+      ],
+      "searchKeywords": [
+        {
+          "query": "perfume",
+          "minDiscount": 70
+        },
+        {
+          "query": "deodorant",
+          "minDiscount": 70
+        },
+        {
+          "query": "body wash",
+          "minDiscount": 70
+        },
+        {
+          "query": "shampoo",
+          "minDiscount": 70
+        },
+        {
+          "query": "serum",
+          "minDiscount": 70
+        },
+        {
+          "query": "sunscreen",
+          "minDiscount": 70
+        },
+        {
+          "query": "face wash",
+          "minDiscount": 70
+        },
+        {
+          "query": "moisturizer",
+          "minDiscount": 70
+        },
+        {
+          "query": "sanitary pads",
+          "minDiscount": 70
         }
       ]
     },
@@ -2521,6 +2753,68 @@
           "taxonomyType": "IM Meatsy",
           "minDiscount": 89
         }
+      ],
+      "searchKeywords": [
+        {
+          "query": "detergent",
+          "minDiscount": 70
+        },
+        {
+          "query": "liquid detergent",
+          "minDiscount": 70
+        },
+        {
+          "query": "dishwash",
+          "minDiscount": 70
+        },
+        {
+          "query": "air freshener",
+          "minDiscount": 70
+        },
+        {
+          "query": "cleaner",
+          "minDiscount": 70
+        },
+        {
+          "query": "mosquito repellent",
+          "minDiscount": 70
+        },
+        {
+          "query": "mop",
+          "minDiscount": 70
+        },
+        {
+          "query": "kitchen",
+          "minDiscount": 85
+        },
+        {
+          "query": "home",
+          "minDiscount": 85
+        },
+        {
+          "query": "bed",
+          "minDiscount": 85
+        },
+        {
+          "query": "trimmer",
+          "minDiscount": 75
+        },
+        {
+          "query": "kettle",
+          "minDiscount": 75
+        },
+        {
+          "query": "iron",
+          "minDiscount": 75
+        },
+        {
+          "query": "earbuds",
+          "minDiscount": 80
+        },
+        {
+          "query": "headphones",
+          "minDiscount": 80
+        }
       ]
     },
     "clearance": {
@@ -2886,6 +3180,56 @@
           "name": "Gift Kits",
           "id": "6903b10bd2c61b000112bad8",
           "taxonomyType": "taxonomy 14",
+          "minDiscount": 89
+        }
+      ],
+      "searchKeywords": [
+        {
+          "query": "baby wash",
+          "minDiscount": 75
+        },
+        {
+          "query": "stationery",
+          "minDiscount": 89
+        },
+        {
+          "query": "book",
+          "minDiscount": 89
+        },
+        {
+          "query": "pen",
+          "minDiscount": 89
+        },
+        {
+          "query": "t-shirt",
+          "minDiscount": 89
+        },
+        {
+          "query": "socks",
+          "minDiscount": 89
+        },
+        {
+          "query": "innerwear",
+          "minDiscount": 89
+        },
+        {
+          "query": "slippers",
+          "minDiscount": 89
+        },
+        {
+          "query": "wallet",
+          "minDiscount": 89
+        },
+        {
+          "query": "sunglasses",
+          "minDiscount": 89
+        },
+        {
+          "query": "bedsheet",
+          "minDiscount": 89
+        },
+        {
+          "query": "towel",
           "minDiscount": 89
         }
       ]

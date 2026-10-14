@@ -101,8 +101,9 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
   const tag = campaignCfg.tag || '';
   const headerName = tag ? `${tag} ${name}` : name;
   const subcategories = campaignCfg.subcategories || [];
+  const searchKeywords = campaignCfg.searchKeywords || [];
 
-  console.log(`\n--- Running ${name} (${subcategories.length} Subcategories) ---`);
+  console.log(`\n--- Running ${name} (${subcategories.length} Subcategories, ${searchKeywords.length} Search Keywords) ---`);
 
   let items = [];
   let attempts = 0;
@@ -111,15 +112,16 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      console.log(`[${campaignKey}] Fetching deals for ${subcategories.length} aisles (attempt ${attempts}/${maxAttempts})...`);
+      console.log(`[${campaignKey}] Fetching deals for ${subcategories.length} aisles & ${searchKeywords.length} keywords (attempt ${attempts}/${maxAttempts})...`);
       items = await fetchEssentialAisleDeals(storeConfig, {
         subcategories,
+        searchKeywords,
         campaignName: name,
         dealType: campaignKey
       });
 
       if (items && items.length > 0) {
-        console.log(`[${campaignKey}] Scraped ${items.length} items across ${subcategories.length} aisles.`);
+        console.log(`[${campaignKey}] Scraped ${items.length} items across ${subcategories.length} aisles & ${searchKeywords.length} keywords.`);
         break;
       } else {
         console.warn(`[${campaignKey}] Attempt ${attempts}/${maxAttempts}: Swiggy returned 0 items (server may be busy).`);
