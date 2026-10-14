@@ -2569,20 +2569,53 @@ javascript:(async () => {
   }
 
   const QUICK_KEYWORDS = [
+    // Staples & Cooking
     'atta',
     'rice',
     'dal',
+    'oil',
     'ghee',
+    'masala',
+    'grocery',
+    // Fresh, Dairy & Meat
+    'fruits',
+    'vegetables',
+    'dairy',
+    'eggs',
+    'meat',
+    // Sweets, Treats & Bakery
     'sweets',
     'chocolate',
     'cake',
+    'ice cream',
+    // Snacks, Munchies & Breakfast
     'snacks',
+    'munchies',
     'dry fruits',
-    'dairy',
+    'instant',
+    // Drinks & Nutrition
+    'beverages',
+    'tea',
     'coffee',
-    'cleaner',
+    'protein',
+    // Personal Care & Beauty
+    'skincare',
+    'haircare',
+    'bath',
+    'oral',
     'shampoo',
-    'electronics'
+    'makeup',
+    // Cleaning & Household
+    'cleaner',
+    'detergents',
+    'kitchen',
+    'home',
+    'bed',
+    // Appliances, Tech & More
+    'appliances',
+    'electronics',
+    'stationery',
+    'premium'
   ];
 
   async function fetchKeywordSearchDeals(keyword, storeIds, resultMap) {
@@ -2596,7 +2629,7 @@ javascript:(async () => {
       is_pre_search_tag: false
     };
 
-    const json = await apiRequestSafe(searchUrl, 'POST', searchBody);
+    const json = await apiRequestSafe(searchUrl, 'POST', searchBody, true);
     if (!json?.data) return { scanned: 0, maxDiscount: 0, itemsFound: 0 };
 
     const variations = [];
@@ -2855,7 +2888,7 @@ javascript:(async () => {
           <span style="font-size:11px;color:#16a34a;font-weight:700;">Top Deals</span>
         </div>
         <button id="ih4-fetch" disabled>Select subcategories to scout</button>
-        <button id="ih4-quick-search" type="button" title="Fast scan top deals using 14 generic store keywords">⚡ Quick Keyword Deals (Fast Scan)</button>
+        <button id="ih4-quick-search" type="button" title="Fast scan top deals across 39 broad store keywords">⚡ Quick Keyword Deals (Fast Scan)</button>
         <div id="ih4-status"></div>
         <div id="ih4-open-results-link">Open Results Tab ↗</div>
       </div>
@@ -3804,28 +3837,44 @@ javascript:(async () => {
     let overallMaxDiscount = 0;
     const totalKws = QUICK_KEYWORDS.length;
 
-    statusEl.textContent = `Scouting ${totalKws} generic store keywords…`;
+    const BATCH_SIZE = 3;
+    statusEl.textContent = `Scouting ${totalKws} keywords (batches of ${BATCH_SIZE})…`;
     dispatch({ type: 'progress', text: `Scouting ${totalKws} keywords…`, doneCount: 0, total: totalKws });
 
-    for (let i = 0; i < totalKws; i++) {
-      const kw = QUICK_KEYWORDS[i];
-      const kwLabel = kw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      statusEl.textContent = `[${i + 1}/${totalKws}] Searching "${kwLabel}"…`;
+    let processedCount = 0;
+    for (let i = 0; i < totalKws; i += BATCH_SIZE) {
+      const batch = QUICK_KEYWORDS.slice(i, i + BATCH_SIZE);
+      const batchLabels = batch.map(kw => kw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+
+      const startIdx = i + 1;
+      const endIdx = Math.min(i + batch.length, totalKws);
+      const progressLabel = `[${startIdx}-${endIdx}/${totalKws}] ${batchLabels.join(', ')}`;
+
+      statusEl.textContent = `Searching ${progressLabel}…`;
       dispatch({
         type: 'progress',
-        text: `Searching [${i + 1}/${totalKws}]: "${kwLabel}"…`,
-        doneCount: i,
+        text: `Searching ${progressLabel}…`,
+        doneCount: processedCount,
         total: totalKws
       });
 
-      const res = await fetchKeywordSearchDeals(kw, storeIds, resultMap);
-      if (res) {
-        totalScanned += res.scanned;
-        overallMaxDiscount = Math.max(overallMaxDiscount, res.maxDiscount);
+      const batchResults = await Promise.all(
+        batch.map(kw => fetchKeywordSearchDeals(kw, storeIds, resultMap))
+      );
+
+      for (const res of batchResults) {
+        if (res) {
+          totalScanned += res.scanned;
+          overallMaxDiscount = Math.max(overallMaxDiscount, res.maxDiscount);
+        }
       }
 
-      if (i < totalKws - 1) {
-        await sleep(80);
+      processedCount += batch.length;
+
+      // Mild human-like pause (220ms - 380ms jitter) between batches to stay safe from 429 rate limits
+      if (i + BATCH_SIZE < totalKws) {
+        const jitterDelay = 220 + Math.floor(Math.random() * 160);
+        await sleep(jitterDelay);
       }
     }
 
