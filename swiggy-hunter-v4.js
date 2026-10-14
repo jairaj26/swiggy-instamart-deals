@@ -2568,6 +2568,99 @@ javascript:(async () => {
     return { scanned, maxDiscount, itemsFound, fetchedPage2: page > 0 };
   }
 
+  const QUICK_KEYWORDS = [
+    'atta',
+    'rice',
+    'dal',
+    'ghee',
+    'sweets',
+    'chocolate',
+    'cake',
+    'snacks',
+    'dry fruits',
+    'dairy',
+    'coffee',
+    'cleaner',
+    'shampoo',
+    'electronics'
+  ];
+
+  async function fetchKeywordSearchDeals(keyword, storeIds, resultMap) {
+    const searchUrl = `/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}`;
+    const searchBody = {
+      facets: [],
+      sortAttribute: 'discountPercentHighToLow',
+      query: keyword,
+      search_results_offset: '0',
+      page_type: 'INSTAMART_SEARCH_PAGE',
+      is_pre_search_tag: false
+    };
+
+    const json = await apiRequestSafe(searchUrl, 'POST', searchBody);
+    if (!json?.data) return { scanned: 0, maxDiscount: 0, itemsFound: 0 };
+
+    const variations = [];
+    extractVariations(json.data, variations);
+    if (!variations.length) return { scanned: 0, maxDiscount: 0, itemsFound: 0 };
+
+    let scanned = 0;
+    let maxDiscount = 0;
+    let itemsFound = 0;
+
+    const kwLabel = keyword.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+    for (const v of variations) {
+      if (v.inventory?.inStock === false) continue;
+      scanned++;
+
+      const mrp = parseFloat(v.price?.mrp?.units || v.price?.mrp || 0);
+      const price = parseFloat(v.price?.offerPrice?.units || v.price?.offerPrice || 0);
+      const discount = mrp > 0 ? Math.round(((mrp - price) / mrp) * 100) : 0;
+      const savings = Math.max(0, Math.round(mrp - price));
+      const name = v.displayName;
+      if (!name) continue;
+
+      maxDiscount = Math.max(maxDiscount, discount);
+
+      const rawSku = v.skuId || v.spinId;
+      const skuId = rawSku || name;
+      const imageId = v.imageIds?.[0] || v.imageId || '';
+      const imageUrl = imageId
+        ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_360,h_360,c_fit/${imageId}`
+        : null;
+
+      const searchLink = `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(name)}`;
+      const itemLink = searchLink;
+
+      const item = {
+        skuId,
+        name,
+        brand: v.brandName || v.brand || 'Instamart',
+        pack: v.quantityDescription || '',
+        price,
+        mrp,
+        discount,
+        savings,
+        category: v.category || kwLabel,
+        subCategory: kwLabel,
+        rating: v.rating?.value ? `${v.rating.value} ★` : null,
+        ratingCount: v.rating?.count || null,
+        imageUrl,
+        image: imageId,
+        itemLink,
+        searchLink
+      };
+
+      const existing = resultMap.get(name);
+      if (!existing || price < existing.price) {
+        resultMap.set(name, item);
+        itemsFound++;
+      }
+    }
+
+    return { scanned, maxDiscount, itemsFound };
+  }
+
   /* ==========================================================================
      In-Browser Floating Overlay UI (Side Panel)
      ========================================================================== */
@@ -2713,6 +2806,16 @@ javascript:(async () => {
     #ih4-fetch:hover:not(:disabled) { background: #fc8019; }
     #ih4-fetch:active:not(:disabled) { transform: translateY(1px); }
     #ih4-fetch:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+    #ih4-quick-search {
+      width: 100%; margin-top: 8px; padding: 11px 14px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s ease;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.25);
+    }
+    #ih4-quick-search:hover:not(:disabled) { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35); }
+    #ih4-quick-search:active:not(:disabled) { transform: translateY(1px); }
+    #ih4-quick-search:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
     #ih4-status { font-size: 12px; color: #64748b; margin-top: 9px; min-height: 16px; text-align: center; line-height: 1.4; }
     #ih4-open-results-link { display: none; margin-top: 8px; font-size: 12.5px; color: #fc8019; text-align: center; font-weight: 700; cursor: pointer; }
   `;
@@ -2752,6 +2855,7 @@ javascript:(async () => {
           <span style="font-size:11px;color:#16a34a;font-weight:700;">Top Deals</span>
         </div>
         <button id="ih4-fetch" disabled>Select subcategories to scout</button>
+        <button id="ih4-quick-search" type="button" title="Fast scan top deals using 14 generic store keywords">⚡ Quick Keyword Deals (Fast Scan)</button>
         <div id="ih4-status"></div>
         <div id="ih4-open-results-link">Open Results Tab ↗</div>
       </div>
@@ -2769,6 +2873,7 @@ javascript:(async () => {
   const fabBadge = root.querySelector('#ih4-fab-badge');
   const listEl = root.querySelector('#ih4-list');
   const fetchBtn = root.querySelector('#ih4-fetch');
+  const quickSearchBtn = root.querySelector('#ih4-quick-search');
   const statusEl = root.querySelector('#ih4-status');
   const catsCountEl = root.querySelector('#ih4-cats-count');
   const openResultsLink = root.querySelector('#ih4-open-results-link');
@@ -3491,7 +3596,7 @@ javascript:(async () => {
 
   function openResults() {
     if (!finalItemsCache || (!finalItemsCache.length && !latestMetaCache)) return;
-    const catNameClean = selectedCat ? getCleanCatName(selectedCat) : 'Instamart';
+    const catNameClean = latestMetaCache?.categoryName || (selectedCat ? getCleanCatName(selectedCat) : 'Instamart');
     const w = window.open('', '_blank');
     if (w) {
       w.document.open();
@@ -3537,6 +3642,7 @@ javascript:(async () => {
     expandedCats.clear();
     listEl.querySelectorAll('.ih4-cat-card.expanded').forEach(card => card.classList.remove('expanded'));
     fetchBtn.disabled = true;
+    quickSearchBtn.disabled = true;
     fetchBtn.textContent = '⏳ Scouting Deals…';
     fetchBtn.style.background = '';
     openResultsLink.style.display = 'none';
@@ -3657,6 +3763,91 @@ javascript:(async () => {
     statusEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✓ Complete:</span> Loaded <b>${finalItems.length} deals</b> across ${totalSubs} subcategories (Max: ${overallMaxDiscount}% OFF).`;
     dispatch({ type: 'done', items: finalItems, meta: latestMetaCache });
 
+    fetchBtn.disabled = false;
+    quickSearchBtn.disabled = false;
+    fetchBtn.style.background = '#16a34a';
+    fetchBtn.textContent = `🟢 View ${finalItems.length} Deals in Results Tab ↗`;
+
+    openResultsLink.style.display = 'block';
+    openResultsLink.textContent = `✨ View ${finalItems.length} Deals in Results Tab ↗`;
+
+    openResults();
+  });
+
+  quickSearchBtn.addEventListener('click', async () => {
+    if (isScouting) return;
+
+    const storeIds = detectStoreIds(true) || activeStoreIds;
+    if (!storeIds) {
+      statusEl.textContent = 'Could not detect store ID. Please navigate to an Instamart page or click ↻ on the store pod above.';
+      updateStorePodDisplay(null);
+      return;
+    }
+    updateStorePodDisplay(storeIds);
+
+    isScouting = true;
+    hasResults = false;
+    quickSearchBtn.disabled = true;
+    quickSearchBtn.textContent = '⏳ Scanning Keywords…';
+    fetchBtn.disabled = true;
+    openResultsLink.style.display = 'none';
+
+    const dispatch = (msg) => {
+      const payload = { source: 'ih4', time: Date.now(), ...msg };
+      try { sessionStorage.setItem('__IH4_LATEST_DEALS__', JSON.stringify(payload)); } catch (e) {}
+      try { window.__IH4_LATEST_MSG__ = payload; } catch (e) {}
+    };
+
+    activeDispatch = dispatch;
+    const resultMap = new Map();
+    let totalScanned = 0;
+    let overallMaxDiscount = 0;
+    const totalKws = QUICK_KEYWORDS.length;
+
+    statusEl.textContent = `Scouting ${totalKws} generic store keywords…`;
+    dispatch({ type: 'progress', text: `Scouting ${totalKws} keywords…`, doneCount: 0, total: totalKws });
+
+    for (let i = 0; i < totalKws; i++) {
+      const kw = QUICK_KEYWORDS[i];
+      const kwLabel = kw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      statusEl.textContent = `[${i + 1}/${totalKws}] Searching "${kwLabel}"…`;
+      dispatch({
+        type: 'progress',
+        text: `Searching [${i + 1}/${totalKws}]: "${kwLabel}"…`,
+        doneCount: i,
+        total: totalKws
+      });
+
+      const res = await fetchKeywordSearchDeals(kw, storeIds, resultMap);
+      if (res) {
+        totalScanned += res.scanned;
+        overallMaxDiscount = Math.max(overallMaxDiscount, res.maxDiscount);
+      }
+
+      if (i < totalKws - 1) {
+        await sleep(80);
+      }
+    }
+
+    const finalItems = Array.from(resultMap.values());
+    finalItems.sort((a, b) => b.discount - a.discount);
+    finalItemsCache = finalItems;
+    latestMetaCache = {
+      totalScanned,
+      overallMaxDiscount,
+      totalSubs: totalKws,
+      totalCats: 1,
+      categoryName: '⚡ Quick Store Keyword Deals'
+    };
+
+    isScouting = false;
+    hasResults = true;
+
+    statusEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✓ Complete:</span> Found <b>${finalItems.length} deals</b> across ${totalKws} keywords (Max: ${overallMaxDiscount}% OFF).`;
+    dispatch({ type: 'done', items: finalItems, meta: latestMetaCache });
+
+    quickSearchBtn.disabled = false;
+    quickSearchBtn.textContent = '⚡ Quick Keyword Deals (Fast Scan)';
     fetchBtn.disabled = false;
     fetchBtn.style.background = '#16a34a';
     fetchBtn.textContent = `🟢 View ${finalItems.length} Deals in Results Tab ↗`;
