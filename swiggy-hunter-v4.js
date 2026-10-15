@@ -2588,6 +2588,8 @@ javascript:(async () => {
     'chocolate',
     'cake',
     'ice cream',
+    'cookies',
+    'biscuits',
     // Snacks, Munchies & Breakfast
     'snacks',
     'munchies',
@@ -2888,7 +2890,7 @@ javascript:(async () => {
           <span style="font-size:11px;color:#16a34a;font-weight:700;">Top Deals</span>
         </div>
         <button id="ih4-fetch" disabled>Select subcategories to scout</button>
-        <button id="ih4-quick-search" type="button" title="Fast scan top deals across 39 broad store keywords">⚡ Quick Keyword Deals (Fast Scan)</button>
+        <button id="ih4-quick-search" type="button" title="Fast scan top deals across 41 broad store keywords">⚡ Quick Keyword Deals (Fast Scan)</button>
         <div id="ih4-status"></div>
         <div id="ih4-open-results-link">Open Results Tab ↗</div>
       </div>

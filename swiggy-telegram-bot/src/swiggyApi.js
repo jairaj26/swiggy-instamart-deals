@@ -126,6 +126,7 @@ const INSTAMART_CATEGORIES = {
 };
 
 const NOICE_SUB_COLLECTIONS = [
+  { id: '428607', name: 'NOICE Brand Store' },
   { id: '408822', name: 'Top Deals' },
   { id: '377503', name: 'Dairy, Bread Eggs & More' },
   { id: '377513', name: 'Chocolates & Ice Creams' },

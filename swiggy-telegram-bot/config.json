@@ -1106,7 +1106,15 @@
           "minDiscount": 70
         },
         {
+          "query": "cookie",
+          "minDiscount": 70
+        },
+        {
           "query": "biscuits",
+          "minDiscount": 70
+        },
+        {
+          "query": "biscuit",
           "minDiscount": 70
         },
         {
@@ -1447,6 +1455,22 @@
         },
         {
           "query": "peanut butter",
+          "minDiscount": 70
+        },
+        {
+          "query": "cookies",
+          "minDiscount": 70
+        },
+        {
+          "query": "cookie",
+          "minDiscount": 70
+        },
+        {
+          "query": "biscuits",
+          "minDiscount": 70
+        },
+        {
+          "query": "noice",
           "minDiscount": 70
         }
       ]
