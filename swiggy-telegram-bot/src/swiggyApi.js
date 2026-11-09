@@ -39,8 +39,8 @@ function findBrowserExecutable() {
 function extractVariations(node, out, parentInfo = {}) {
   if (!node || typeof node !== 'object') return;
   const currentParent = {
-    productId: node.productId || parentInfo.productId,
-    parentProductId: node.parentProductId || parentInfo.parentProductId,
+    productId: node.productId || node.product_id || (node.id && /^[A-Za-z0-9_-]{6,16}$/.test(node.id) ? node.id : null) || parentInfo.productId,
+    parentProductId: node.parentProductId || node.parent_product_id || parentInfo.parentProductId,
     displayName: node.displayName || parentInfo.displayName
   };
 
@@ -53,6 +53,7 @@ function extractVariations(node, out, parentInfo = {}) {
     }
   } else if (node.displayName && (node.price || node.offerPrice)) {
     if (currentParent.parentProductId) node.parentProductId = currentParent.parentProductId;
+    if (currentParent.productId) node.productId = currentParent.productId;
     out.push(node);
   } else {
     Object.values(node).forEach((v) => extractVariations(v, out, currentParent));
@@ -77,17 +78,22 @@ function parseItemsFromData(data) {
 
     const rawSku = v.skuId || v.spinId;
     const skuId = rawSku || name;
-    const parentProductId = v.parentProductId || v.productId || null;
+    const parentProductId = v.parentProductId || null;
+    const rawProductId = v.productId || v.parentProductId || null;
+    const candidateId = rawProductId || (rawSku && /^[A-Za-z0-9_-]{6,16}$/.test(rawSku) ? rawSku : null);
     const imageId = v.imageIds?.[0] || v.imageId || '';
     const imageUrl = imageId
       ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_450,h_450,c_fit/${imageId}`
       : null;
 
     const searchLink = `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(name)}`;
-    const itemLink = searchLink;
+    const itemLink = candidateId
+      ? `https://www.swiggy.com/instamart/item/${candidateId}`
+      : searchLink;
 
     items.push({
       skuId,
+      productId: candidateId,
       name,
       parentProductId,
       brand: v.brandName || v.brand || 'Instamart',
@@ -349,6 +355,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       if (m === 'aisles') {
         const subcategories = opt.subcategories || [];
         const rawPages = [];
+        const failedSubcategories = [];
         const total = subcategories.length;
 
         for (let i = 0; i < total; i++) {
@@ -375,8 +382,8 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
               body: JSON.stringify(body),
               credentials: 'include'
             });
-            const fJson = await fRes.json();
-            if (fJson?.data) {
+            const fJson = await fRes.json().catch(() => null);
+            if (fRes.status === 200 && fJson?.data) {
               fJson._meta = {
                 category: item.category,
                 subCategory: item.name,
@@ -385,13 +392,55 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
                 minDiscount: item.minDiscount || item.threshold
               };
               rawPages.push(fJson);
+            } else {
+              failedSubcategories.push(item);
             }
-          } catch (e) {}
+          } catch (e) {
+            failedSubcategories.push(item);
+          }
 
           await pSleep(200 + Math.random() * 100);
         }
 
+        // Pass 2: Retry throttled subcategories after a short cooldown
+        if (failedSubcategories.length > 0 && failedSubcategories.length < total) {
+          await pSleep(1500);
+          for (const item of failedSubcategories) {
+            const filterUrl = `https://instamart.in/api/instamart/category-listing/filter/v2?storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
+            const body = {
+              categoryName: item.category,
+              filterName: item.name,
+              filterId: item.id,
+              taxonomyType: item.taxonomyType || 'taxonomy 5',
+              items_offset: '0',
+              facets: [],
+              sortAttribute: 'discountPercentHighToLow'
+            };
+            try {
+              const fRes = await fetch(filterUrl, {
+                method: 'POST',
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                body: JSON.stringify(body),
+                credentials: 'include'
+              });
+              const fJson = await fRes.json().catch(() => null);
+              if (fRes.status === 200 && fJson?.data) {
+                fJson._meta = {
+                  category: item.category,
+                  subCategory: item.name,
+                  dealType: opt.dealType || 'essential',
+                  threshold: item.minDiscount || item.threshold,
+                  minDiscount: item.minDiscount || item.threshold
+                };
+                rawPages.push(fJson);
+              }
+            } catch (e) {}
+            await pSleep(400 + Math.random() * 200);
+          }
+        }
+
         const searchKeywords = opt.searchKeywords || [];
+        const failedKeywords = [];
         for (let k = 0; k < searchKeywords.length; k++) {
           const kw = searchKeywords[k];
           const queryStr = typeof kw === 'string' ? kw : kw.query;
@@ -413,8 +462,8 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
               body: JSON.stringify(searchBody),
               credentials: 'include'
             });
-            const sJson = await sRes.json();
-            if (sJson?.data) {
+            const sJson = await sRes.json().catch(() => null);
+            if (sRes.status === 200 && sJson?.data) {
               sJson._meta = {
                 dealType: opt.dealType || 'essential',
                 query: queryStr,
@@ -422,10 +471,51 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
                 minDiscount: kwThreshold
               };
               rawPages.push(sJson);
+            } else {
+              failedKeywords.push(kw);
             }
-          } catch (e) {}
+          } catch (e) {
+            failedKeywords.push(kw);
+          }
 
           await pSleep(200 + Math.random() * 100);
+        }
+
+        // Pass 2: Retry throttled keywords after a short cooldown
+        if (failedKeywords.length > 0 && failedKeywords.length < searchKeywords.length) {
+          await pSleep(1200);
+          for (const kw of failedKeywords) {
+            const queryStr = typeof kw === 'string' ? kw : kw.query;
+            const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+            const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+            const searchBody = {
+              facets: [],
+              sortAttribute: 'discountPercentHighToLow',
+              query: queryStr,
+              search_results_offset: '0',
+              page_type: 'INSTAMART_SEARCH_PAGE',
+              is_pre_search_tag: false
+            };
+            try {
+              const sRes = await fetch(searchUrl, {
+                method: 'POST',
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                body: JSON.stringify(searchBody),
+                credentials: 'include'
+              });
+              const sJson = await sRes.json().catch(() => null);
+              if (sRes.status === 200 && sJson?.data) {
+                sJson._meta = {
+                  dealType: opt.dealType || 'essential',
+                  query: queryStr,
+                  threshold: kwThreshold,
+                  minDiscount: kwThreshold
+                };
+                rawPages.push(sJson);
+              }
+            } catch (e) {}
+            await pSleep(400 + Math.random() * 200);
+          }
         }
 
         return { rawPages };
@@ -545,9 +635,10 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         if (meta.threshold) item.threshold = meta.threshold;
         if (meta.minDiscount) item.minDiscount = meta.minDiscount;
 
-        const existing = resultMap.get(item.name);
-        if (!existing || item.price < existing.price) {
-          resultMap.set(item.name, item);
+        const dedupKey = `${item.name}__${item.pack || item.skuId || ''}`;
+        const existing = resultMap.get(dedupKey);
+        if (!existing || item.discount > existing.discount || (item.discount === existing.discount && item.price < existing.price)) {
+          resultMap.set(dedupKey, item);
         }
       }
     }
@@ -583,9 +674,10 @@ async function fetchNoiceDealsDirect(storeConfig) {
         item.category = 'The NOICE Store';
         item.subCategory = coll.name;
         item.dealType = 'noice';
-        const existing = resultMap.get(item.name);
-        if (!existing || item.price < existing.price) {
-          resultMap.set(item.name, item);
+        const dedupKey = `${item.name}__${item.pack || item.skuId || ''}`;
+        const existing = resultMap.get(dedupKey);
+        if (!existing || item.discount > existing.discount || (item.discount === existing.discount && item.price < existing.price)) {
+          resultMap.set(dedupKey, item);
         }
       }
 
@@ -721,9 +813,10 @@ async function fetchKeywordDealsDirect(storeConfig, keywordItems) {
         pi.searchQuery = item.query;
         pi.threshold = item.threshold;
 
-        const existing = resultMap.get(pi.name);
-        if (!existing || pi.price < existing.price) {
-          resultMap.set(pi.name, pi);
+        const dedupKey = `${pi.name}__${pi.pack || pi.skuId || ''}`;
+        const existing = resultMap.get(dedupKey);
+        if (!existing || pi.discount > existing.discount || (pi.discount === existing.discount && pi.price < existing.price)) {
+          resultMap.set(dedupKey, pi);
         }
       }
 
@@ -809,10 +902,15 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
         it.category = item.category;
         it.subCategory = item.name;
         it.dealType = dealType;
+        if (item.minDiscount || item.threshold) {
+          it.minDiscount = item.minDiscount || item.threshold;
+          it.threshold = it.minDiscount;
+        }
 
-        const existing = resultMap.get(it.name);
-        if (!existing || it.price < existing.price) {
-          resultMap.set(it.name, it);
+        const dedupKey = `${it.name}__${it.pack || it.skuId || ''}`;
+        const existing = resultMap.get(dedupKey);
+        if (!existing || it.discount > existing.discount || (it.discount === existing.discount && it.price < existing.price)) {
+          resultMap.set(dedupKey, it);
         }
       }
     } else {
@@ -851,9 +949,10 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
             it.minDiscount = kwThreshold;
           }
           it.searchQuery = queryStr;
-          const existing = resultMap.get(it.name);
-          if (!existing || it.price < existing.price) {
-            resultMap.set(it.name, it);
+          const dedupKey = `${it.name}__${it.pack || it.skuId || ''}`;
+          const existing = resultMap.get(dedupKey);
+          if (!existing || it.discount > existing.discount || (it.discount === existing.discount && it.price < existing.price)) {
+            resultMap.set(dedupKey, it);
           }
         }
       }

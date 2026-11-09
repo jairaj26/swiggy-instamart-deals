@@ -15,7 +15,7 @@ function escapeHtml(text) {
  * Click here (direct search link)
  */
 function formatCompactItem(deal, index = null) {
-  const directUrl = deal.searchLink || `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(deal.name)}`;
+  const directUrl = deal.itemLink || deal.searchLink || `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(deal.name)}`;
   const safeUrl = directUrl.replace(/"/g, '%22');
   const num = index !== null ? `${index}. ` : '• ';
 

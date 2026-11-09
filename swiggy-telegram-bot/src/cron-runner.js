@@ -4,6 +4,7 @@ const config = require('../config.json');
 const { fetchEssentialAisleDeals, fetchNoiceDeals } = require('./swiggyApi');
 const { findAlertWorthyDeals } = require('./dealTracker');
 const { sendBatchAlerts } = require('./notifier');
+const { getUser } = require('./userManager');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -96,7 +97,7 @@ async function syncToHourMark(skip = false, targetBufferSecs = 30) {
 }
 
 async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
-  const { bot, chatId, storeConfig, threshold, timeString } = options;
+  const { bot, chatId, storeConfig, threshold, timeString, forceThreshold = false } = options;
   const name = campaignCfg.name || campaignKey;
   const tag = campaignCfg.tag || '';
   const headerName = tag ? `${tag} ${name}` : name;
@@ -144,7 +145,8 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
     const alerts = findAlertWorthyDeals(items, threshold, campaignKey, {
       refreshCycle,
       weeklyResetDay,
-      weeklyCategories
+      weeklyCategories,
+      forceThreshold: Boolean(forceThreshold)
     });
     console.log(`[${campaignKey}] Found ${alerts.length} alert-worthy deals (Discount ≥ ${threshold}% | Cycle: ${refreshCycle}).`);
     if (bot && chatId && alerts.length > 0) {
@@ -155,13 +157,19 @@ async function runSubcategoryCampaign(campaignKey, campaignCfg, options = {}) {
     } else if (!alerts.length) {
       console.log(`[${campaignKey}] No items met the minimum discount threshold (${threshold}%) this run.`);
     }
+    return true;
   } else {
     console.error(`[${campaignKey}] All retry attempts failed or returned 0 items.`);
+    return false;
   }
 }
 
 async function main() {
   console.log(`[CronRunner] Mode: ${mode.toUpperCase()} | Store: ${storeConfig.sid}`);
+  const brandCount = Object.keys(config.brandThresholds || {}).length;
+  if (brandCount > 0) {
+    console.log(`[CronRunner] 🏷️ Brand Threshold Filter Active (${brandCount} brand rules loaded).`);
+  }
 
   // Synchronize to :00:00 IST if runner booted early in pre-hour window
   await syncToHourMark(skipSync);
@@ -250,145 +258,209 @@ async function main() {
     }
   }
 
+  const user = chatId ? getUser(chatId, storeConfig) : null;
+  const activeStoreConfig = {
+    sid: storeConfig.sid || user?.primaryStoreId || user?.storeId || '',
+    pid: storeConfig.pid || user?.primaryStoreId || storeConfig.sid || '',
+    secid: storeConfig.secid || user?.secondaryStoreId || ''
+  };
+  const userDiscounts = user?.workerDiscounts || {};
+
   const campaigns = config.campaigns || {};
+  let anyWorkerFailed = false;
 
   // 1. Worker 1: Daily Fresh Produce & Meats
   if (runFresh) {
     const cfg = campaigns.fresh || campaigns.essentials || {};
-    const threshold = parseInt(process.env.FRESH_MIN_DISCOUNT || process.env.ESSENTIALS_MIN_DISCOUNT, 10) || cfg.minDiscount || 60;
-    await runSubcategoryCampaign('fresh', cfg, {
+    const envVal = process.env.FRESH_MIN_DISCOUNT || process.env.ESSENTIALS_MIN_DISCOUNT;
+    const userVal = userDiscounts.fresh || userDiscounts.essentials;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 60;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('fresh', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 2. Worker 2: Daily Staples & Cooking Essentials
   if (runGrocery) {
     const cfg = campaigns.grocery || campaigns.essentials || {};
-    const threshold = parseInt(process.env.GROCERY_MIN_DISCOUNT || process.env.ESSENTIALS_MIN_DISCOUNT, 10) || cfg.minDiscount || 60;
-    await runSubcategoryCampaign('grocery', cfg, {
+    const envVal = process.env.GROCERY_MIN_DISCOUNT || process.env.ESSENTIALS_MIN_DISCOUNT;
+    const userVal = userDiscounts.grocery || userDiscounts.essentials;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 60;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('grocery', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 3. Worker 3: Sweets, Chocolates & Bakery
   if (runTreats) {
     const cfg = campaigns.treats || {};
-    const threshold = parseInt(process.env.TREATS_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
-    await runSubcategoryCampaign('treats', cfg, {
+    const envVal = process.env.TREATS_MIN_DISCOUNT;
+    const userVal = userDiscounts.treats;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 70;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('treats', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 4. Worker 4: Snacks, Munchies & Instant Foods
   if (runMunchies) {
     const cfg = campaigns.munchies || campaigns.treats || {};
-    const threshold = parseInt(process.env.MUNCHIES_MIN_DISCOUNT || process.env.TREATS_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
-    await runSubcategoryCampaign('munchies', cfg, {
+    const envVal = process.env.MUNCHIES_MIN_DISCOUNT || (process.env.TREATS_MIN_DISCOUNT ? process.env.TREATS_MIN_DISCOUNT : null);
+    const userVal = userDiscounts.munchies;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 70;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('munchies', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 5. Worker 5: Cold Drinks, Nutrition & Spreads
   if (runBeverages) {
     const cfg = campaigns.beverages || {};
-    const threshold = parseInt(process.env.BEVERAGES_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
-    await runSubcategoryCampaign('beverages', cfg, {
+    const envVal = process.env.BEVERAGES_MIN_DISCOUNT;
+    const userVal = userDiscounts.beverages;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 70;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('beverages', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 6. Worker 6: Personal Care, Bath & Skincare
   if (runPersonal) {
     const cfg = campaigns.personalCare || campaigns.personal || {};
-    const threshold = parseInt(process.env.PERSONAL_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
-    await runSubcategoryCampaign('personalCare', cfg, {
+    const envVal = process.env.PERSONAL_MIN_DISCOUNT || process.env.PERSONALCARE_MIN_DISCOUNT;
+    const userVal = userDiscounts.personalCare || userDiscounts.personal;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 70;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('personalCare', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 7. Worker 7: Baby Care & Lifestyle
   if (runLifestyle) {
     const cfg = campaigns.lifestyle || {};
-    const threshold = parseInt(process.env.LIFESTYLE_MIN_DISCOUNT, 10) || cfg.minDiscount || 85;
-    await runSubcategoryCampaign('lifestyle', cfg, {
+    const envVal = process.env.LIFESTYLE_MIN_DISCOUNT;
+    const userVal = userDiscounts.lifestyle;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 85;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('lifestyle', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 8. Worker 8: Cleaning, Home & Electronics
   if (runHousehold) {
     const cfg = campaigns.household || campaigns.cleaning || {};
-    const threshold = parseInt(process.env.HOUSEHOLD_MIN_DISCOUNT || process.env.CLEANING_MIN_DISCOUNT, 10) || cfg.minDiscount || 70;
-    await runSubcategoryCampaign('household', cfg, {
+    const envVal = process.env.HOUSEHOLD_MIN_DISCOUNT || process.env.CLEANING_MIN_DISCOUNT;
+    const userVal = userDiscounts.household;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 70;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('household', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
   // 9. Worker 9: High-Discount Clearance Specials
   if (runClearance) {
     const cfg = campaigns.clearance || {};
-    const threshold = parseInt(process.env.CLEARANCE_MIN_DISCOUNT, 10) || cfg.minDiscount || 89;
-    await runSubcategoryCampaign('clearance', cfg, {
+    const envVal = process.env.CLEARANCE_MIN_DISCOUNT;
+    const userVal = userDiscounts.clearance;
+    const threshold = parseInt(envVal || userVal, 10) || cfg.minDiscount || 89;
+    const forceThreshold = Boolean(envVal || userVal);
+    const ok = await runSubcategoryCampaign('clearance', cfg, {
       bot,
       chatId,
-      storeConfig,
+      storeConfig: activeStoreConfig,
       threshold,
+      forceThreshold,
       timeString
     });
+    if (!ok) anyWorkerFailed = true;
   }
 
 
-  // 5. The NOICE Store Scan
+  // 10. The NOICE Store Scan
   if (runNoice) {
     console.log('\n--- Running The NOICE Store Scan ---');
     const cfg = campaigns.noice || {};
     const noiceThreshold = parseInt(process.env.NOICE_MIN_DISCOUNT, 10) || cfg.minDiscount || minDiscount || 50;
     try {
-      const items = await fetchNoiceDeals(storeConfig);
-      console.log(`[NOICE] Scraped ${items.length} items.`);
-      const alerts = findAlertWorthyDeals(items, noiceThreshold, 'noice', {
-        refreshCycle: cfg.refreshCycle || 'weekly',
-        weeklyResetDay: cfg.weeklyResetDay !== undefined ? cfg.weeklyResetDay : 1
-      });
-      console.log(`[NOICE] Found ${alerts.length} new/improved deals >= ${noiceThreshold}%.`);
-      if (bot && chatId && alerts.length > 0) {
-        await sendBatchAlerts(bot, chatId, alerts, { timeString, workerInfo: '✨ The NOICE Store' });
+      const items = await fetchNoiceDeals(activeStoreConfig);
+      if (!items || items.length === 0) {
+        anyWorkerFailed = true;
+      } else {
+        console.log(`[NOICE] Scraped ${items.length} items.`);
+        const alerts = findAlertWorthyDeals(items, noiceThreshold, 'noice', {
+          refreshCycle: cfg.refreshCycle || 'weekly',
+          weeklyResetDay: cfg.weeklyResetDay !== undefined ? cfg.weeklyResetDay : 1
+        });
+        console.log(`[NOICE] Found ${alerts.length} new/improved deals >= ${noiceThreshold}%.`);
+        if (bot && chatId && alerts.length > 0) {
+          await sendBatchAlerts(bot, chatId, alerts, { timeString, workerInfo: '✨ The NOICE Store' });
+        }
       }
     } catch (e) {
       console.error('[NOICE] Error:', e.message);
+      anyWorkerFailed = true;
     }
+  }
+
+  if (anyWorkerFailed) {
+    console.error('\n[CronRunner] One or more campaigns failed to scrape items (server busy/throttled). Exiting with code 1 for auto-retry.');
+    process.exit(1);
   }
 
   console.log('\n[CronRunner] Execution finished successfully.');

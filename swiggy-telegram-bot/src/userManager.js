@@ -37,6 +37,8 @@ const DEFAULT_WORKER_DISCOUNTS = {
   beverages: 70,
   personalCare: 70,
   lifestyle: 85,
+  household: 70,
+  clearance: 89,
   essentials: 60
 };
 

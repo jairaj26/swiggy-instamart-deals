@@ -1,5 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+let config = {};
+try {
+  config = require('../config.json');
+} catch (e) {}
 
 function getCacheFilePath(campaignKey = 'default') {
   return path.join(__dirname, '..', 'data', `deals_cache_${campaignKey}.json`);
@@ -97,13 +101,25 @@ function normalizeProductName(name) {
   return str;
 }
 
+function extractPackFromItem(item) {
+  if (item.pack && typeof item.pack === 'string' && item.pack.trim()) {
+    return item.pack.trim().toLowerCase().replace(/\s+/g, '');
+  }
+  if (item.name && typeof item.name === 'string') {
+    const m = item.name.match(/\b\d+(?:\.\d+)?\s*(?:ml|l|ltr|litres?|g|gm|gms|grams?|kg|kgs|pcs|pieces?|pack|units?)\b/i);
+    if (m) return m[0].toLowerCase().replace(/\s+/g, '');
+  }
+  return '';
+}
+
 function getCanonicalItemKey(item) {
+  const pack = extractPackFromItem(item);
   if (item.parentProductId) {
-    return `pid:${item.parentProductId}`;
+    return pack ? `pid:${item.parentProductId}:${pack}` : `pid:${item.parentProductId}`;
   }
   const norm = normalizeProductName(item.name);
   if (norm) {
-    return `name:${norm}`;
+    return pack ? `name:${norm}:${pack}` : `name:${norm}`;
   }
   return (item.name || '').trim().toLowerCase() || String(item.skuId || '');
 }
@@ -112,9 +128,11 @@ function isStaticCooldownCandidate(item) {
   const cat = (item.category || '').toLowerCase();
   const sub = (item.subCategory || '').toLowerCase();
   const name = (item.name || '').toLowerCase();
+  const brand = (item.brand || '').toLowerCase();
+  const text = `${brand} ${name} ${sub} ${cat}`;
 
   // 1. Decor items in Home & Kitchen or anywhere
-  if (sub.includes('decor') || name.includes('decor') || name.includes('string light') || name.includes('fairy light') || name.includes('diya') || name.includes('candle') || name.includes('lamp')) {
+  if (sub.includes('decor') || name.includes('decor') || name.includes('string light') || name.includes('fairy light') || name.includes('diya') || name.includes('candle') || name.includes('lamp') || name.includes('curtain light')) {
     return true;
   }
 
@@ -131,12 +149,109 @@ function isStaticCooldownCandidate(item) {
     return true;
   }
 
-  // 4. Inflated-MRP Brands: Dubstep, Hammer, boAt, Noise
-  if (/\b(dubstep|hammer|boat|bo-at|noise)\b/i.test(name)) {
+  // 4. Inflated-MRP & Chronic High-Discount Brands:
+  // Electronics/Audio: Dubstep, Hammer, boAt, Noise, Boult, Fire-Boltt, Nu Republic, Portronics, Tizum, truke, Tecsox, Bersache
+  // Fashion Jewelry, Gifting & Decor: NVR, You Bella, Palmonas, Meenaz, Zeneme, Tied Ribbons, Desidiya, Rudraksh, BSB Home, Yellow Chimes, Shining Diva, Sukkhi, Voylla, Zaveri Pearls, GIVA
+  if (/\b(dubstep|hammer|boat|bo-at|noise|goboult|boult|fire-boltt|fireboltt|nu republic|portronics|tizum|truke|tecsox|bersache|nvr|you bella|youbella|palmonas|meenaz|zeneme|tied ribbons|tiedribbons|desidiya|desi diya|rudraksh|bsb home|bsbhome|yellow chimes|shining diva|sukkhi|voylla|zaveri pearls|giva)\b/i.test(text)) {
+    return true;
+  }
+
+  // 5. Artificial / Fashion Jewelry & Rakhis
+  if (
+    sub.includes('necklace') || sub.includes('bracelet') || sub.includes('bangle') ||
+    sub.includes('earring') || sub.includes('jewel') || sub.includes('anklet') ||
+    name.includes('rakhi') || name.includes('jhumk') || name.includes('earring') ||
+    name.includes('bracelet') || name.includes('necklace') || name.includes('bangle') ||
+    name.includes('pendant') || name.includes('studs') || name.includes('evil eye')
+  ) {
+    return true;
+  }
+
+  // 6. Footwear & Slippers
+  if (sub.includes('footwear') || name.includes('slipper') || name.includes('clog') || name.includes('slides') || name.includes('sandals')) {
     return true;
   }
 
   return false;
+}
+
+/**
+ * Checks if an item matches any brand in the brandThresholds configuration.
+ * Evaluates both item.brand and item.name using regex word boundary matching.
+ *
+ * @param {Object} item - Product item { name, brand, ... }
+ * @param {Object} brandThresholds - Map of brand name to required min discount percentage
+ * @returns {{ brand: string, threshold: number } | null}
+ */
+function getBrandThresholdMatch(item, brandThresholds = {}) {
+  if (!brandThresholds || typeof brandThresholds !== 'object') return null;
+
+  const rawBrand = (item.brand || '').trim();
+  const rawName = (item.name || '').trim();
+  const brandLower = rawBrand.toLowerCase();
+  const nameLower = rawName.toLowerCase();
+  const catLower = (item.category || '').toLowerCase();
+  const subCatLower = (item.subCategory || '').toLowerCase();
+
+  // Sort keys by length descending so more specific names (e.g. 'MEENAZ Resam') match first
+  const sortedEntries = Object.entries(brandThresholds).sort((a, b) => b[0].length - a[0].length);
+
+  for (const [brandKey, minDisc] of sortedEntries) {
+    const threshold = typeof minDisc === 'number' ? minDisc : parseInt(minDisc, 10);
+    if (isNaN(threshold)) continue;
+
+    const keyLower = brandKey.toLowerCase().trim();
+    if (!keyLower) continue;
+
+    // Guard: Capsicum (Brand, NOT the vegetable like Green Capsicum / Shimla Mirch)
+    if (keyLower === 'capsicum') {
+      const isVegetableCat = catLower.includes('vegetable') || catLower.includes('produce') ||
+                             subCatLower.includes('vegetable') || subCatLower.includes('produce') ||
+                             catLower.includes('fresh') || subCatLower.includes('fresh');
+      const isVegName = /\b(?:green|red|yellow)\s+capsicum\b/i.test(nameLower) ||
+                        /\bcapsicum\s*[-–(]?\s*(?:green|red|yellow|shimla)\b/i.test(nameLower) ||
+                        /\bshimla\s*mirch\b/i.test(nameLower);
+      if (isVegetableCat || isVegName) {
+        continue; // Skip Capsicum brand rule for actual fresh vegetables
+      }
+    }
+
+    // Guard: ANT (Brand, NOT pest control like ant killer / ant chalk / roach spray)
+    if (keyLower === 'ant') {
+      const isPestControl = /\b(pest|insect|cockroach|roach|mosquito|bug|termite|lizard|rat|rodent)\b/i.test(nameLower) ||
+                            /\bant\s*(?:&|\band\b)?\s*.*?(killer|repellent|spray|chalk|bait|trap|powder)\b/i.test(nameLower) ||
+                            catLower.includes('pest');
+      if (isPestControl) {
+        continue; // Skip ANT brand rule for household insecticides
+      }
+      const isBrandAnt = brandLower === 'ant' || brandLower.startsWith('ant ');
+      const isAntName = /\bant\b/i.test(nameLower);
+      if (!isBrandAnt && !isAntName) {
+        continue;
+      }
+    }
+
+    // 1. Direct match on item.brand (if present and not generic instamart/swiggy)
+    if (brandLower && brandLower !== 'instamart' && brandLower !== 'swiggy') {
+      if (brandLower === keyLower || brandLower.includes(keyLower) || keyLower.includes(brandLower)) {
+        return { brand: brandKey, threshold };
+      }
+    }
+
+    // 2. Safe regex word boundary matching on item.name and item.brand
+    let patternStr = keyLower
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\@/g, '[\\s@]+')
+      .replace(/\\-/g, '[\\s\\-]+')
+      .replace(/\\\s+/g, '[\\s\\-_]+');
+
+    const regex = new RegExp(`(^|[^a-zA-Z0-9])${patternStr}([^a-zA-Z0-9]|$)`, 'i');
+    if (regex.test(nameLower) || regex.test(brandLower)) {
+      return { brand: brandKey, threshold };
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -155,9 +270,10 @@ function isStaticCooldownCandidate(item) {
  *        b) Its DISCOUNT PERCENTAGE HAS CHANGED (e.g. 70% -> 80% or 80% -> 75%) while still meeting threshold.
  *    - If an item goes out of stock or dips out of discount and returns later at the SAME discount,
  *      it is NOT re-alerted (suppresses redundant come-and-go spam).
- * 3. 15-Day Static Price Cooldown:
- *    - Decor items, Cables, Smartwatches, and inflated-MRP brands (Dubstep, Hammer, boAt, Noise)
- *      are suppressed for 15 days if their price does not drop below their last alerted price.
+ * 3. 30-Day Static Price Cooldown:
+ *    - Decor items, Cables, Smartwatches, Fashion Jewelry, and inflated-MRP brands
+ *      (NVR, You Bella, Palmonas, Meenaz, Tied Ribbons, Desidiya, Rudraksh, boAt, Noise, Hammer, etc.)
+ *      are suppressed for 30 days if their price does not drop below their last alerted price.
  */
 function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', options = {}) {
   const cache = loadCache(campaignKey);
@@ -183,10 +299,29 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
 
   const lastRunId = cache.lastRunId;
   const seenInCurrentRun = new Map();
+  let totalMetCriteria = 0;
+  let discardedByBrandThreshold = 0;
+
+  // Resolve Brand Thresholds (options > env > config)
+  let envBrandDiscounts = {};
+  if (process.env.BRAND_MIN_DISCOUNTS) {
+    try {
+      envBrandDiscounts = JSON.parse(process.env.BRAND_MIN_DISCOUNTS);
+    } catch (e) {
+      console.warn('[DealTracker] Could not parse BRAND_MIN_DISCOUNTS env var:', e.message);
+    }
+  }
+  const brandThresholds = {
+    ...(config.brandThresholds || {}),
+    ...(options.brandThresholds || {}),
+    ...envBrandDiscounts
+  };
 
   for (const item of items) {
     let threshold = 70;
-    if (item.minDiscount !== undefined && item.minDiscount !== null) {
+    if (options.forceThreshold && typeof minDiscount === 'number') {
+      threshold = minDiscount;
+    } else if (item.minDiscount !== undefined && item.minDiscount !== null) {
       threshold = item.minDiscount;
     } else if (item.threshold !== undefined && item.threshold !== null) {
       threshold = item.threshold;
@@ -200,7 +335,19 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       threshold = minDiscount;
     }
 
-    if (item.discount < threshold) continue;
+    // Layer 1: Worker / General Minimum Discount Threshold
+    if (item.discount < threshold) {
+      continue;
+    }
+
+    // Layer 2: Brand-Specific Second Layer Threshold
+    const brandMatch = getBrandThresholdMatch(item, brandThresholds);
+    if (brandMatch && item.discount < brandMatch.threshold) {
+      discardedByBrandThreshold++;
+      continue; // Discard: passes worker threshold, but fails specific brand threshold
+    }
+
+    totalMetCriteria++;
 
     const itemKey = getCanonicalItemKey(item);
     if (!itemKey) continue;
@@ -208,13 +355,17 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
     // Intra-run deduplication: if multiple variants/sizes of the same product exist in this batch
     if (seenInCurrentRun.has(itemKey)) {
       const existingAlert = seenInCurrentRun.get(itemKey);
-      if (item.price < existingAlert.price) {
-        // Update alert with the cheaper variant
+      // Keep higher discount; if discount is equal, keep lower price
+      if (item.discount > (existingAlert.discount || 0) || (item.discount === existingAlert.discount && item.price < existingAlert.price)) {
         existingAlert.price = item.price;
         existingAlert.mrp = item.mrp;
         existingAlert.discount = item.discount;
         existingAlert.name = item.name;
+        existingAlert.itemLink = item.itemLink;
         existingAlert.searchLink = item.searchLink;
+        existingAlert.productId = item.productId;
+        existingAlert.skuId = item.skuId;
+        existingAlert.parentProductId = item.parentProductId;
         if (cache.items[itemKey]) {
           cache.items[itemKey].price = item.price;
           cache.items[itemKey].discount = item.discount;
@@ -269,17 +420,17 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       shouldAlert = false;
     }
 
-    // 15-Day Static Price Cooldown:
-    // If item is a candidate (Decor, Cables, Smartwatches, Hammer/boAt/Noise/Dubstep),
-    // and was previously alerted, suppress if its price hasn't dropped within 15 days.
+    // 30-Day Static Price Cooldown:
+    // If item is a candidate (Decor, Cables, Smartwatches, Fashion Jewelry, Inflated-MRP brands),
+    // and was previously alerted, suppress if its price hasn't dropped within 30 days.
     const isCooldownCandidate = isStaticCooldownCandidate(item);
     if (shouldAlert && isCooldownCandidate && prev && (prev.lastAlertedPrice !== undefined && prev.lastAlertedPrice !== null)) {
       const isPriceSameOrHigher = item.price >= prev.lastAlertedPrice;
       const lastAlertTime = prev.lastAlertedTimestamp || (prev.lastAlertedDate ? new Date(prev.lastAlertedDate).getTime() : 0);
       const daysSinceAlert = (now - lastAlertTime) / (24 * 60 * 60 * 1000);
 
-      if (isPriceSameOrHigher && daysSinceAlert < 15) {
-        // Price has not dropped and 15-day cooldown has not expired: suppress alert
+      if (isPriceSameOrHigher && daysSinceAlert < 30) {
+        // Price has not dropped and 30-day cooldown has not expired: suppress alert
         shouldAlert = false;
       }
     }
@@ -301,7 +452,9 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
         name: item.name,
         category: item.category || '',
         skuId: item.skuId || null,
+        productId: item.productId || null,
         parentProductId: item.parentProductId || null,
+        itemLink: item.itemLink || null,
         price: item.price,
         mrp: item.mrp,
         discount: item.discount,
@@ -317,13 +470,15 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       };
     } else {
       // Keep tracking presence in cache without triggering Telegram alert
-      seenInCurrentRun.set(itemKey, { price: item.price });
+      seenInCurrentRun.set(itemKey, { price: item.price, discount: item.discount, alertType: null });
       if (!cache.items[itemKey]) {
         cache.items[itemKey] = {
           name: item.name,
           category: item.category || '',
           skuId: item.skuId || null,
+          productId: item.productId || null,
           parentProductId: item.parentProductId || null,
+          itemLink: item.itemLink || null,
           price: item.price,
           mrp: item.mrp,
           discount: item.discount,
@@ -348,9 +503,8 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
   // Sort deals descending by discount percentage (highest discount first)
   alertList.sort((a, b) => b.discount - a.discount);
 
-  const totalMetCriteria = items.filter(it => it.discount >= (typeof minDiscount === 'number' ? minDiscount : 70)).length;
   const suppressedCount = Math.max(0, totalMetCriteria - alertList.length);
-  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount} (Cycle: ${refreshCycle}/${cycleId})`);
+  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Discarded by Brand Threshold: ${discardedByBrandThreshold} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount} (Cycle: ${refreshCycle}/${cycleId})`);
 
   // Update run metadata
   cache.lastDate = dateStr;
@@ -367,6 +521,24 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
     alertsFound: alertList.length,
     suppressedCount
   };
+
+  // 1. Prune lastRuns to keep only the most recent 50 entries
+  const runKeys = Object.keys(cache.lastRuns || {});
+  if (runKeys.length > 50) {
+    runKeys.sort((a, b) => (cache.lastRuns[a].timestamp || 0) - (cache.lastRuns[b].timestamp || 0));
+    const excess = runKeys.length - 50;
+    for (let i = 0; i < excess; i++) {
+      delete cache.lastRuns[runKeys[i]];
+    }
+  }
+
+  // 2. Prune items inactive for > 60 days (allows 30-day cooldown items to safely remain in history)
+  const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
+  for (const [key, itm] of Object.entries(cache.items || {})) {
+    if (now - (itm.lastSeen || 0) > SIXTY_DAYS_MS) {
+      delete cache.items[key];
+    }
+  }
 
   saveCache(cache, campaignKey);
   return alertList;
@@ -388,6 +560,7 @@ module.exports = {
   loadCache,
   saveCache,
   findAlertWorthyDeals,
+  getBrandThresholdMatch,
   getCachedDeals,
   getIstContext
 };

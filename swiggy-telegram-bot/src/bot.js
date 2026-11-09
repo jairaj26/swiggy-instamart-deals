@@ -16,9 +16,9 @@ const storeConfig = {
 };
 
 console.log('====================================================');
-console.log('⚡ Instamart Telegram Deal Alert Bot (5 Parallel Workers)');
+console.log('⚡ Instamart Telegram Deal Alert Bot (9 Parallel Workers)');
 console.log(`📍 Store ID: ${storeConfig.sid} (Primary: ${storeConfig.pid}, Secondary: ${storeConfig.secid})`);
-console.log('🎯 Minimum Alert Discounts: W1 Essentials ≥60%, W2 Treats ≥70%, W3 Lifestyle ≥85%, W4 Beverages ≥70%, W5 Personal Care ≥70%');
+console.log('🎯 Minimum Alert Discounts: W1 Fresh ≥60%, W2 Grocery ≥60%, W3 Treats ≥70%, W4 Munchies ≥70%, W5 Beverages ≥70%, W6 Personal Care ≥70%, W7 Lifestyle ≥85%, W8 Household ≥70%, W9 Clearance ≥89%');
 console.log('====================================================');
 
 let bot = null;
@@ -30,7 +30,8 @@ if (token && token !== 'your_bot_token_here') {
   bot.setMyCommands([
     { command: 'start', description: 'Show welcome message & commands' },
     { command: 'store', description: 'View or set Swiggy Dark Store IDs' },
-    { command: 'setdiscount', description: 'Set discount % for each of the 5 workers' },
+    { command: 'setdiscount', description: 'Set discount % for each of the 9 workers' },
+    { command: 'brands', description: 'View brand-specific discount thresholds' },
     { command: 'myinfo', description: 'View your profile & active store' },
     { command: 'status', description: 'Check bot status & scan stats' }
   ]).catch(err => console.error('[Bot] Failed to set menu commands:', err.message));
@@ -70,22 +71,27 @@ if (bot) {
     const text = 
 `👋 <b>Welcome to Instamart Hunter Deal Bot!</b>
 
-I monitor <b>154 Dark Store Aisles</b> across <b>5 Parallel Workers</b> every hour (10:00 AM – 10:00 PM IST) to find you the highest discounts!
+I monitor <b>379 Dark Store Aisles & 73 Search Keywords</b> across <b>9 Parallel Workers</b> every half-hour (9:01 AM – 12:01 AM IST) to find you the highest discounts!
 
 📍 <b>Dark Store Configuration:</b>
 • <code>/store</code> — View your current store or get instructions on how to find your Dark Store IDs
 • <code>/store &lt;primaryId&gt; [secondaryId]</code> — Link your exact Swiggy warehouse pod IDs
-• <code>/myinfo</code> — View your active store IDs and all 5 worker discount thresholds
+• <code>/myinfo</code> — View your active store IDs and all 9 worker discount thresholds
 
 🎯 <b>Deal Hunter Workers & Default Thresholds:</b>
-• 🌾 <b>Worker 1 (Essentials & Fresh)</b> — Veggies, Fruits, Staples, Dairy, Dry Fruits (≥ 60% OFF)
-• 🍿 <b>Worker 2 (Sweets & Snacks)</b> — Chips, Chocolates, Sweets, Ice Cream, Noodles (≥ 70% OFF)
-• 🛍️ <b>Worker 3 (Lifestyle & Fashion)</b> — Cookware, Appliances, Stationery, Innerwear (≥ 85% OFF)
-• 🥤 <b>Worker 4 (Beverages & Spreads)</b> — Colas, Juices, Coffee, Tea, Oats, Sauces (≥ 70% OFF)
-• 🧴 <b>Worker 5 (Personal Care & Laundry)</b> — Soaps, Skincare, Baby, Detergents (≥ 70% OFF)
+• 🥦 <b>Worker 1 (Fresh Produce & Meats)</b> — Fresh Vegetables, Fruits, Seafood, Mutton (≥ 60% OFF)
+• 🌾 <b>Worker 2 (Staples & Groceries)</b> — Atta, Rice, Dal, Oils, Ghee, Masalas (≥ 60% OFF)
+• 🍫 <b>Worker 3 (Sweets & Chocolates)</b> — Sweets, Chocolates, Ice Cream, Cakes (≥ 70% OFF)
+• 🍿 <b>Worker 4 (Snacks & Munchies)</b> — Chips, Namkeens, Noodles, Pasta, Dry Fruits (≥ 70% OFF)
+• 🥤 <b>Worker 5 (Beverages & Spreads)</b> — Cold Drinks, Juices, Tea, Coffee, Spreads (≥ 70% OFF)
+• 🧴 <b>Worker 6 (Personal Care & Bath)</b> — Soaps, Skincare, Haircare, Oral Care (≥ 70% OFF)
+• 🛍️ <b>Worker 7 (Baby Care & Lifestyle)</b> — Diapers, Baby Food, Wet Wipes (≥ 85% OFF)
+• 🧹 <b>Worker 8 (Cleaning, Home & Tech)</b> — Detergents, Cleaners, Kitchen, Electronics (≥ 70% OFF)
+• 🏷️ <b>Worker 9 (Clearance Specials)</b> — Toys, Stationery, Fashion, Utensils (≥ 89% OFF)
 
 ⚙️ <b>Settings & Status:</b>
 • <code>/setdiscount</code> — Change discount threshold for any specific worker (or all together)
+• <code>/brands</code> — View brand-specific second-layer discount thresholds
 • <code>/status</code> — Check bot status & tracked deals
 
 <i>💡 Tap the <b>Menu</b> button at the bottom left to quickly run any command!</i>`;
@@ -135,7 +141,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `✅ <b>Store configuration updated:</b>\n` +
       `• <b>Primary Store ID</b>: <code>${sid}</code>\n` +
       `• <b>Secondary Store ID</b>: <code>${finalSecid}</code>\n\n` +
-      `Automated 5-worker hourly interval scans will now pull catalogs directly from this warehouse pod!`,
+      `Automated 9-worker interval scans will now pull catalogs directly from this warehouse pod!`,
       { parse_mode: 'HTML' }
     );
   }
@@ -162,7 +168,9 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
     { key: 'munchies', name: 'Snacks, Munchies & Instant Foods', tag: '🍿', defaultDiscount: 70 },
     { key: 'beverages', name: 'Cold Drinks, Nutrition & Spreads', tag: '🥤', defaultDiscount: 70 },
     { key: 'personalCare', name: 'Personal Care, Bath & Skincare', tag: '🧴', defaultDiscount: 70 },
-    { key: 'lifestyle', name: 'Baby Care & Lifestyle', tag: '🛍️', defaultDiscount: 85 }
+    { key: 'lifestyle', name: 'Baby Care & Lifestyle', tag: '🛍️', defaultDiscount: 85 },
+    { key: 'household', name: 'Cleaning, Home & Electronics', tag: '🧹', defaultDiscount: 70 },
+    { key: 'clearance', name: 'Clearance Specials: Fashion, Toys & Baby', tag: '🏷️', defaultDiscount: 89 }
   ];
 
   function getWorkerDiscountOverviewText(user) {
@@ -178,7 +186,9 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `• 🍿 <b>Snacks & Munchies</b>: <b>≥ ${wd.munchies || 70}% OFF</b>\n` +
       `• 🥤 <b>Cold Drinks & Beverages</b>: <b>≥ ${wd.beverages || 70}% OFF</b>\n` +
       `• 🧴 <b>Personal Care & Bath</b>: <b>≥ ${wd.personalCare || 70}% OFF</b>\n` +
-      `• 🛍️ <b>Baby Care & Lifestyle</b>: <b>≥ ${wd.lifestyle || 85}% OFF</b>\n\n` +
+      `• 🛍️ <b>Baby Care & Lifestyle</b>: <b>≥ ${wd.lifestyle || 85}% OFF</b>\n` +
+      `• 🧹 <b>Cleaning & Tech</b>: <b>≥ ${wd.household || 70}% OFF</b>\n` +
+      `• 🏷️ <b>Clearance Specials</b>: <b>≥ ${wd.clearance || 89}% OFF</b>\n\n` +
       `<i>Tap a worker button below to customize:</i>`
     );
   }
@@ -201,6 +211,10 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
         ],
         [
           { text: `🛍️ Lifestyle (${wd.lifestyle || 85}%)`, callback_data: 'selworker:lifestyle' },
+          { text: `🧹 Household (${wd.household || 70}%)`, callback_data: 'selworker:household' }
+        ],
+        [
+          { text: `🏷️ Clearance (${wd.clearance || 89}%)`, callback_data: 'selworker:clearance' },
           { text: '🌐 Set All Together', callback_data: 'selworker:all' }
         ]
       ]
@@ -236,6 +250,8 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
     if (['beverages', 'beverage', 'drinks', 'drink', 'juices', 'tea', 'coffee', 'w5', 'worker5', '5'].includes(s)) return 'beverages';
     if (['personal', 'personalcare', 'bath', 'hair', 'skincare', 'w6', 'worker6', '6'].includes(s)) return 'personalCare';
     if (['lifestyle', 'life', 'baby', 'home', 'kitchen', 'fashion', 'w7', 'worker7', '7'].includes(s)) return 'lifestyle';
+    if (['household', 'cleaning', 'electronics', 'tech', 'w8', 'worker8', '8'].includes(s)) return 'household';
+    if (['clearance', 'clear', 'deals', 'special', 'toys', 'w9', 'worker9', '9'].includes(s)) return 'clearance';
     if (['essentials', 'essential'].includes(s)) return 'fresh';
     if (['all', 'global', 'everyone'].includes(s)) return 'all';
     return null;
@@ -267,8 +283,30 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `• 🍿 <b>Snacks & Munchies</b>: <b>≥ ${wd.munchies || 70}% OFF</b>\n` +
       `• 🥤 <b>Cold Drinks & Beverages</b>: <b>≥ ${wd.beverages || 70}% OFF</b>\n` +
       `• 🧴 <b>Personal Care & Bath</b>: <b>≥ ${wd.personalCare || 70}% OFF</b>\n` +
-      `• 🛍️ <b>Baby Care & Lifestyle</b>: <b>≥ ${wd.lifestyle || 85}% OFF</b>\n\n` +
+      `• 🛍️ <b>Baby Care & Lifestyle</b>: <b>≥ ${wd.lifestyle || 85}% OFF</b>\n` +
+      `• 🧹 <b>Home & Cleaning</b>: <b>≥ ${wd.household || 70}% OFF</b>\n` +
+      `• 🏷️ <b>Special Deals & Clearance</b>: <b>≥ ${wd.clearance || 89}% OFF</b>\n\n` +
+      `🏷️ <b>Brand-Specific Second-Layer Thresholds:</b>\n` +
+      `• Send <code>/brands</code> to view brand discount thresholds (75% – 95% OFF)\n\n` +
       `💡 <i>To update dark store IDs, send <b>/store</b>. To change discount thresholds, send <b>/setdiscount</b>.</i>`,
+      { parse_mode: 'HTML' }
+    );
+  });
+
+  bot.onText(/^\/brands(?:@\w+)?/i, (msg) => {
+    bot.sendMessage(
+      msg.chat.id,
+      `🏷️ <b>Brand-Specific Second-Layer Thresholds:</b>\n\n` +
+      `Items passing the worker threshold must also pass these brand thresholds before alerting:\n\n` +
+      `🔥 <b>≥ 95% OFF:</b>\n` +
+      `• Dubstep, You Bella, MEENAZ Resam, I Jewels, Palmonas, NVR, Zeneme, Minutiae\n\n` +
+      `⚡ <b>≥ 90% OFF:</b>\n` +
+      `• Nu Republic, truke, Tecsox, Lifelong, Story@Home\n\n` +
+      `✨ <b>≥ 85% OFF:</b>\n` +
+      `• The Man Company, KYARI, GOBOULT (Boult), Festive Greetings, Festive Delight, Hashwow, Homebasic, Capsicum (Brand), ANT (Ant Esports), Cult (Cultsport)\n\n` +
+      `🍫 <b>≥ 75% OFF:</b>\n` +
+      `• Wedel, Ella Foods, Jivo, Borges, Hathi, Amayu\n\n` +
+      `<i>💡 All other brands only need to pass the standard worker discount threshold.</i>`,
       { parse_mode: 'HTML' }
     );
   });
@@ -278,7 +316,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
     bot.sendMessage(
       msg.chat.id,
       'ℹ️ <b>Manual fetching is disabled.</b>\n\n' +
-      'Deals across all <b>327 aisles</b> are monitored automatically every hour (10:00 AM – 10:00 PM IST) across 7 parallel workers.\n\n' +
+      'Deals across all <b>379 aisles</b> are monitored automatically every 30 minutes (09:00 AM – 12:00 AM IST) across 9 parallel workers.\n\n' +
       '• Use <code>/setdiscount</code> to configure alert thresholds for each worker.\n' +
       '• Use <code>/store</code> to check or update your Dark Store IDs.\n' +
       '• Use <code>/status</code> to check active settings.',
@@ -302,6 +340,8 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
           beverages: discountVal,
           personalCare: discountVal,
           lifestyle: discountVal,
+          household: discountVal,
+          clearance: discountVal,
           essentials: discountVal
         };
         updateUser(query.message.chat.id, { minDiscount: discountVal, workerDiscounts: newDiscounts });
@@ -335,7 +375,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       if (target === 'all') {
         await bot.answerCallbackQuery(query.id);
         return bot.editMessageText(
-          `🌐 <b>Set Global Threshold for All 5 Workers</b>\n\n` +
+          `🌐 <b>Set Global Threshold for All 9 Workers</b>\n\n` +
           `Choose a discount percentage to apply across all workers:`,
           {
             chat_id: query.message.chat.id,
@@ -380,6 +420,8 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
             beverages: discountVal,
             personalCare: discountVal,
             lifestyle: discountVal,
+            household: discountVal,
+            clearance: discountVal,
             essentials: discountVal
           };
           updateUser(query.message.chat.id, {
@@ -388,7 +430,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
           });
           await bot.answerCallbackQuery(query.id, { text: `All workers set to ≥ ${discountVal}% OFF!` });
           return bot.editMessageText(
-            `✅ <b>All 7 Workers updated to ≥ ${discountVal}% OFF!</b>`,
+            `✅ <b>All 9 Workers updated to ≥ ${discountVal}% OFF!</b>`,
             {
               chat_id: query.message.chat.id,
               message_id: query.message.message_id,
@@ -450,12 +492,14 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
           beverages: val,
           personalCare: val,
           lifestyle: val,
+          household: val,
+          clearance: val,
           essentials: val
         };
         updateUser(msg.chat.id, { minDiscount: val, workerDiscounts: newDiscounts });
         return bot.sendMessage(
           msg.chat.id,
-          `✅ Alert threshold for <b>all 7 workers</b> updated to <b>≥ ${val}% OFF</b>.`,
+          `✅ Alert threshold for <b>all 9 workers</b> updated to <b>≥ ${val}% OFF</b>.`,
           { parse_mode: 'HTML' }
         );
       } else {
@@ -471,7 +515,7 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       return bot.sendMessage(
         msg.chat.id,
         `❌ Unknown worker <b>"${escapeHtml(arg1)}"</b>.\n\n` +
-        `Valid options: <code>fresh</code>, <code>grocery</code>, <code>treats</code>, <code>munchies</code>, <code>beverages</code>, <code>personal</code>, <code>lifestyle</code>, or <code>all</code>.\n` +
+        `Valid options: <code>fresh</code>, <code>grocery</code>, <code>treats</code>, <code>munchies</code>, <code>beverages</code>, <code>personal</code>, <code>lifestyle</code>, <code>household</code>, <code>clearance</code>, or <code>all</code>.\n` +
         `<i>Example</i>: <code>/setdiscount fresh 65</code>`,
         { parse_mode: 'HTML' }
       );
@@ -494,12 +538,14 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
         beverages: val,
         personalCare: val,
         lifestyle: val,
+        household: val,
+        clearance: val,
         essentials: val
       };
       updateUser(msg.chat.id, { minDiscount: val, workerDiscounts: newDiscounts });
       return bot.sendMessage(
         msg.chat.id,
-        `✅ Alert threshold for <b>all 7 workers</b> updated to <b>≥ ${val}% OFF</b>.`,
+        `✅ Alert threshold for <b>all 9 workers</b> updated to <b>≥ ${val}% OFF</b>.`,
         { parse_mode: 'HTML' }
       );
     }
@@ -515,13 +561,27 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
   });
 
   bot.onText(/^\/status(?:@\w+)?/i, (msg) => {
-    const cache = loadCache();
+    const workerKeys = ['fresh', 'grocery', 'treats', 'munchies', 'beverages', 'personalCare', 'lifestyle', 'household', 'clearance'];
+    let totalItems = 0;
+    let latestRunTimestamp = 0;
+
+    for (const key of workerKeys) {
+      const c = loadCache(key);
+      totalItems += Object.keys(c.items || {}).length;
+      for (const run of Object.values(c.lastRuns || {})) {
+        if (run && run.timestamp) {
+          const t = new Date(run.timestamp).getTime();
+          if (t > latestRunTimestamp) latestRunTimestamp = t;
+        }
+      }
+    }
+
     const user = getUser(msg.chat.id, storeConfig);
     const pid = user.primaryStoreId || user.storeId || storeConfig.pid || 'Not set';
     const secid = user.secondaryStoreId || storeConfig.secid || 'None';
     const wd = user.workerDiscounts || {};
-    const khRun = (cache.lastRuns?.essentials || cache.lastRuns?.treats || cache.lastRuns?.lifestyle || cache.lastRuns?.keywordHunter || cache.lastRuns?.noice)
-      ? new Date((cache.lastRuns?.essentials || cache.lastRuns?.treats || cache.lastRuns?.lifestyle || cache.lastRuns?.keywordHunter || cache.lastRuns?.noice).timestamp).toLocaleString('en-IN')
+    const khRun = latestRunTimestamp > 0
+      ? new Date(latestRunTimestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
       : 'Never';
 
     const statusText = 
@@ -531,18 +591,22 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
 • <b>Active Secondary Store</b>: <code>${secid}</code>
 
 🎯 <b>Active Worker Thresholds</b>:
-• 🌾 Essentials & Fresh: <b>≥ ${wd.essentials || 60}% OFF</b>
-• 🍿 Sweets & Treats: <b>≥ ${wd.treats || 70}% OFF</b>
-• 🛍️ Lifestyle & Home: <b>≥ ${wd.lifestyle || 85}% OFF</b>
-• 🥤 Beverages & Spreads: <b>≥ ${wd.beverages || 70}% OFF</b>
-• 🧴 Personal Care & Laundry: <b>≥ ${wd.personalCare || 70}% OFF</b>
+• 🥦 Fresh Produce & Meats: <b>≥ ${wd.fresh || 60}% OFF</b>
+• 🌾 Staples & Groceries: <b>≥ ${wd.grocery || 60}% OFF</b>
+• 🍫 Sweets & Chocolates: <b>≥ ${wd.treats || 70}% OFF</b>
+• 🍿 Snacks & Munchies: <b>≥ ${wd.munchies || 70}% OFF</b>
+• 🥤 Cold Drinks & Beverages: <b>≥ ${wd.beverages || 70}% OFF</b>
+• 🧴 Personal Care & Bath: <b>≥ ${wd.personalCare || 70}% OFF</b>
+• 🛍️ Baby Care & Lifestyle: <b>≥ ${wd.lifestyle || 85}% OFF</b>
+• 🧹 Home & Cleaning: <b>≥ ${wd.household || 70}% OFF</b>
+• 🏷️ Special Deals & Clearance: <b>≥ ${wd.clearance || 89}% OFF</b>
 
 📦 <b>Tracked Catalog & Last Runs</b>:
-• <b>Total Tracked Items</b>: ${Object.keys(cache.items || {}).length}
+• <b>Total Tracked Items</b>: ${totalItems}
 • <b>Last Automated Hunter Run</b>: ${khRun}
 
 ⏰ <b>Automated Schedules</b>:
-• <b>5-Worker Deals Hunter</b>: 10:00 AM – 10:00 PM IST (Hourly via GitHub Actions)`;
+• <b>9-Worker Deals Hunter</b>: 09:00 AM – 12:00 AM IST (Half-hourly via GitHub Actions)`;
 
     bot.sendMessage(msg.chat.id, statusText, { parse_mode: 'HTML' });
   });

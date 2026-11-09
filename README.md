@@ -3,7 +3,7 @@
 A comprehensive toolkit for discovering hidden deals, clearance discounts, and massive price drops on **Swiggy Instamart**:
 
 1. **⚡ Deal Scout (Browser Bookmarklet & Web Portal)**: Interactive in-browser overlay to cherry-pick subcategories and scan live deals directly within your active Swiggy session on Desktop and Mobile.
-2. **🤖 7-Worker Parallel Deal Hunter (Telegram Bot)**: Automated 24/7 background scraper powered by GitHub Actions matrix runners that tracks **327 curated subcategories** across **7 parallel workers** and delivers instant Telegram alerts with smart duplicate suppression.
+2. **🤖 9-Worker Parallel Deal Hunter (Telegram Bot)**: Automated 24/7 background scraper powered by GitHub Actions matrix runners that tracks **379+ curated subcategories & 73+ search keywords** across **9 parallel workers** and delivers instant Telegram alerts with smart duplicate suppression.
 
 ---
 
@@ -12,10 +12,10 @@ A comprehensive toolkit for discovering hidden deals, clearance discounts, and m
 | Feature | ⚡ Deal Scout Bookmarklet | 🤖 Telegram Bot Deal Hunter |
 | :--- | :--- | :--- |
 | **Interface** | Visual in-page modal on Swiggy Instamart | Consolidated Telegram channel/chat alerts |
-| **Execution** | Client-side (Runs inside your browser) | Cloud-based (7 Parallel GitHub Actions VMs) |
-| **Catalog Coverage** | Pre-mapped **36 categories & all subcategories** | **327 Curated Aisles** across 7 parallel workers |
-| **Threshold** | User-selected via UI chips (e.g. 50%, 60%, 70%) | **Tiered per worker** (60%–85% OFF, fully customizable) |
-| **Speed** | 1–2 seconds per selected subcategory | ~25–35 seconds total for 327 aisles in parallel |
+| **Execution** | Client-side (Runs inside your browser) | Cloud-based (9 Parallel GitHub Actions VMs) |
+| **Catalog Coverage** | Pre-mapped **26 categories (340+ subcategories)** | **379+ Curated Aisles & 73+ Search Keywords** across 9 parallel workers |
+| **Threshold** | User-selected via UI chips (e.g. 50%, 60%, 70%) | **Tiered per worker** (60%–89% OFF, fully customizable) |
+| **Speed** | 1–2 seconds per selected subcategory | ~25–35 seconds total across all workers in parallel |
 | **Pagination** | Page 1 always + Smart Page 2 auto-fetch | Page 1 high-to-low deals per aisle |
 | **Rate-Limit Safety** | Zero risk (uses your authentic browser cookies) | Independent VM IPs with CloudFront backoff |
 | **Spam Prevention** | Zepto-style card grid, brand filters & sorting | Consecutive run suppression & morning reset |
@@ -68,11 +68,11 @@ Mobile browsers do not support drag-and-drop bookmarking, but the mobile bookmar
 
 ---
 
-## 🤖 2. Telegram Deal Hunter Bot (7-Worker Architecture)
+## 🤖 2. Telegram Deal Hunter Bot (9-Worker Architecture)
 
-An automated deal hunter running on a scheduled cron. Every hour, it triggers **7 parallel worker VMs** via GitHub Actions to scan **327 dark store aisles** simultaneously.
+An automated deal hunter running on a scheduled cron. Every 30 minutes, it triggers **9 parallel worker VMs** via GitHub Actions to scan **379+ dark store aisles and 73+ search keywords** simultaneously.
 
-### 🌾 The 7 Workers & Default Discount Thresholds
+### 🌾 The 9 Workers & Default Discount Thresholds
 
 | Worker | Name / Campaign | Aisles | Default Threshold | Included Subcategories |
 | :--- | :--- | :---: | :---: | :--- |
@@ -83,6 +83,8 @@ An automated deal hunter running on a scheduled cron. Every hour, it triggers **
 | **Worker 5 (`beverages`)** | **🥤 Cold Drinks, Nutrition & Spreads** | **49** | **≥ 70% OFF** | Soft Drinks, Fruit Juices, Energy & Hydration Drinks, Coconut Water, Cold & Hot Coffee, Tea & Herbal Tea, Breakfast Cereals, Muesli, Oats, Peanut Butter, Chocolate Spreads, Sauces. |
 | **Worker 6 (`personalCare`)** | **🧴 Personal Care, Bath & Skincare** | **47** | **≥ 70% OFF** | Soaps, Shower Gels, Hand Wash, Shampoos, Hair Conditioners & Serums, Face Wash & Scrubs, Moisturisers, Sunscreen, Sanitary Pads, Oral Care & Deodorants. |
 | **Worker 7 (`lifestyle`)** | **👶 Baby Care & Lifestyle** | **24** | **≥ 85% OFF** | Curated Baby Essentials (Baby Bathing, Baby Cream, Gifts & More, Baby Oral Care) + Cookware, Kitchen Tools, Crockery, Headphones, Stationery & Home Clearance. |
+| **Worker 8 (`household`)** | **🧹 Cleaning, Home & Electronics** | **52** | **≥ 70% OFF** | Detergents, Fabric Care, Dishwash, Surface Cleaners, Kitchen Essentials, Home Utility, Electricals & Mobile Accessories. |
+| **Worker 9 (`clearance`)** | **🏷️ High-Discount Clearance Specials** | **51** | **≥ 89% OFF** | Steepest clearance deals, seasonal markdowns, apparel, footwear, toys, lifestyle accessories, and flash sales. |
 
 ---
 
@@ -157,6 +159,8 @@ In your forked GitHub repository:
 | `BEVERAGES_MIN_DISCOUNT` | `70` | Custom minimum % discount for Worker 5 (`beverages`) |
 | `PERSONAL_MIN_DISCOUNT` | `70` | Custom minimum % discount for Worker 6 (`personalCare`) |
 | `LIFESTYLE_MIN_DISCOUNT` | `85` | Custom minimum % discount for Worker 7 (`lifestyle`) |
+| `HOUSEHOLD_MIN_DISCOUNT` | `70` | Custom minimum % discount for Worker 8 (`household`) |
+| `CLEARANCE_MIN_DISCOUNT` | `89` | Custom minimum % discount for Worker 9 (`clearance`) |
 
 ---
 
@@ -165,7 +169,7 @@ In your forked GitHub repository:
 2. GitHub automatically pauses scheduled workflows on newly forked repositories. Click the green button: **"I understand my workflows, go ahead and enable them"**.
 3. Select **"Swiggy Instamart Keyword Deal Hunter"** from the left sidebar.
 4. Click **Run workflow** → select `Skip top-of-hour wait sync (run immediately)` → Click **Run workflow**.
-5. Within ~30 seconds, all 7 workers will execute in parallel and you will receive high-discount deals directly on Telegram!
+5. Within ~30 seconds, all 9 workers will execute in parallel and you will receive high-discount deals directly on Telegram!
 6. From now on, GitHub Actions runs automatically **every 30 minutes** from **09:01 AM to 12:01 AM midnight IST**.
 7. *(Recommended)* Ensure your repository's **Settings → Actions → General → Workflow permissions** is set to **"Read and write permissions"** so the built-in auto-retry companion workflow can automatically re-run any worker that encounters a temporary GitHub runner allocation glitch.
 
@@ -198,7 +202,7 @@ You have 3 ways to customize discount thresholds:
 ---
 
 ### 2. How to Add or Remove Subcategories
-All 327 subcategories are defined in [`swiggy-telegram-bot/config.json`](file:///d:/Projects/Swiggy/swiggy-telegram-bot/config.json).
+All 379+ subcategories are defined in [`swiggy-telegram-bot/config.json`](./swiggy-telegram-bot/config.json).
 
 To add an aisle to any worker:
 1. Open `swiggy-telegram-bot/config.json`.
@@ -250,6 +254,8 @@ If you want to run or test the bot on your local machine:
    npm run test:beverages   # Scans Worker 5 (Cold Drinks & Nutrition)
    npm run test:personal    # Scans Worker 6 (Personal Care & Bath)
    npm run test:lifestyle   # Scans Worker 7 (Baby Care & Lifestyle)
+   npm run test:household   # Scans Worker 8 (Cleaning, Home & Electronics)
+   npm run test:clearance   # Scans Worker 9 (High-Discount Clearance Specials)
    ```
 
 5. Run the interactive 24/7 Telegram bot locally:
@@ -269,13 +275,13 @@ If you want to run or test the bot on your local machine:
 ├── swiggy-hunter-v4.bookmarklet.txt     # Raw javascript:... bookmarklet link
 ├── .github/
 │   └── workflows/
-│       └── keyword-hunter.yml           # 7-Worker Parallel Deal Hunter GitHub Actions workflow
+│       └── keyword-hunter.yml           # 9-Worker Parallel Deal Hunter GitHub Actions workflow
 ├── swiggy-telegram-bot/
-│   ├── config.json                      # 327 Subcategories & campaign configurations
+│   ├── config.json                      # 379+ Subcategories, 73+ search keywords & campaign configurations
 │   ├── package.json
 │   ├── .env.example
 │   └── src/
-│       ├── bot.js                       # Interactive Telegram bot handler (supports all 7 workers)
+│       ├── bot.js                       # Interactive Telegram bot handler (supports all 9 workers)
 │       ├── cron-runner.js               # CLI runner for GitHub Actions & cron jobs
 │       ├── dealTracker.js               # Deal state tracking & consecutive suppression
 │       ├── userManager.js               # User preferences & threshold persistence

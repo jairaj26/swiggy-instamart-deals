@@ -5,7 +5,7 @@ javascript:(async () => {
      INSTAMART HUNTER v4 — Category & Subcategory Scout
      
      Features:
-     1. Complete 36 Instamart Categories with 110+ subcategories pre-mapped.
+     1. Complete 26 Instamart Categories with 340+ subcategories pre-mapped.
      2. Collapsed Subcategories by Default:
         - Categories can be expanded/collapsed with a smooth chevron toggle.
         - Auto-expands on search or when picking subcategories.
@@ -2371,14 +2371,25 @@ javascript:(async () => {
     }
   }
 
-  function extractVariations(node, out) {
+  function extractVariations(node, out, parentInfo = {}) {
     if (!node || typeof node !== 'object') return;
+    const currentParent = {
+      productId: node.productId || node.product_id || (node.id && /^[A-Za-z0-9_-]{6,16}$/.test(node.id) ? node.id : null) || parentInfo.productId,
+      parentProductId: node.parentProductId || node.parent_product_id || parentInfo.parentProductId,
+      displayName: node.displayName || parentInfo.displayName
+    };
     if (node.variations && Array.isArray(node.variations)) {
-      out.push(...node.variations);
+      for (const v of node.variations) {
+        if (currentParent.productId) v.productId = currentParent.productId;
+        if (currentParent.parentProductId) v.parentProductId = currentParent.parentProductId;
+        out.push(v);
+      }
     } else if (node.displayName && (node.price || node.offerPrice)) {
+      if (currentParent.productId) node.productId = currentParent.productId;
+      if (currentParent.parentProductId) node.parentProductId = currentParent.parentProductId;
       out.push(node);
     } else {
-      Object.values(node).forEach((v) => extractVariations(v, out));
+      Object.values(node).forEach((v) => extractVariations(v, out, currentParent));
     }
   }
 
@@ -2409,16 +2420,21 @@ javascript:(async () => {
 
       const rawSku = v.skuId || v.spinId;
       const skuId = rawSku || name;
+      const rawProductId = v.productId || v.parentProductId || null;
+      const candidateId = rawProductId || (rawSku && /^[A-Za-z0-9_-]{6,16}$/.test(rawSku) ? rawSku : null);
       const imageId = v.imageIds?.[0] || v.imageId || '';
       const imageUrl = imageId
         ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_360,h_360,c_fit/${imageId}`
         : null;
 
       const searchLink = `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(name)}`;
-      const itemLink = searchLink;
+      const itemLink = candidateId
+        ? `https://www.swiggy.com/instamart/item/${candidateId}`
+        : searchLink;
 
       const item = {
         skuId,
+        productId: candidateId,
         name,
         brand: v.brandName || v.brand || 'Instamart',
         pack: v.quantityDescription || '',
@@ -2426,7 +2442,7 @@ javascript:(async () => {
         mrp,
         discount,
         savings,
-        category: catKey.replace(/^\S+\s/, ''),
+        category: catKey.replace(/^[^\w\s]+\s*/, '').trim(),
         subCategory: sub.name,
         rating: v.rating?.value ? `${v.rating.value} ★` : null,
         ratingCount: v.rating?.count || null,
@@ -2436,10 +2452,11 @@ javascript:(async () => {
         searchLink
       };
 
-      const existing = resultMap.get(name);
-      if (!existing || price < existing.price) {
-        resultMap.set(name, item);
-        itemsFound++;
+      const dedupKey = `${name}__${v.quantityDescription || skuId}`;
+      const existing = resultMap.get(dedupKey);
+      if (!existing || discount > existing.discount || (discount === existing.discount && price < existing.price)) {
+        if (!existing) itemsFound++;
+        resultMap.set(dedupKey, item);
       }
       itemsList.push(item);
     }
@@ -2486,12 +2503,16 @@ javascript:(async () => {
     let itemsFound = parsed.itemsFound;
     let fetchedPage2 = false;
 
-    // Smart Page 2 Expansion: If Page 1 has 15+ items and the lowest discount > 50%, grab Page 2
+    // Smart Page 2 Expansion: If Page 1 has 15+ items and the lowest discount > 50% (or 5+ high-discount items for collections), grab Page 2
     const items = parsed.itemsList;
     const lastItem = items.length > 0 ? items[items.length - 1] : null;
 
-    if (sub.id && items.length >= 15 && lastItem && lastItem.discount > 50) {
-      onProgress?.(`Last item on Page 1 is ${lastItem.discount}% OFF (>50%) — fetching Page 2…`);
+    const shouldFetchPage2 = isColl
+      ? (sub.id && items.length >= 15 && items.filter(it => it.discount >= 50).length >= 5)
+      : (sub.id && items.length >= 15 && lastItem && lastItem.discount > 50);
+
+    if (shouldFetchPage2) {
+      onProgress?.(isColl ? 'Collection has high discounts — fetching Page 2…' : `Last item on Page 1 is ${lastItem.discount}% OFF (>50%) — fetching Page 2…`);
       const p2Delay = isRetry
         ? CFG.pacing.subMin + Math.floor(Math.random() * (CFG.pacing.subMax - CFG.pacing.subMin))
         : 150;
@@ -2503,7 +2524,8 @@ javascript:(async () => {
 
       if (isColl) {
         method2 = 'GET';
-        url2 = `https://www.swiggy.com/api/instamart/collection/items?collectionId=${sub.id}&isMonetised=true&storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&offset=1&serviceLine=INSTAMART`;
+        const collOffset = data.data?.pageOffset?.nextOffset ?? 1;
+        url2 = `https://www.swiggy.com/api/instamart/collection/items?collectionId=${sub.id}&isMonetised=true&storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&offset=${collOffset}&serviceLine=INSTAMART`;
       } else {
         method2 = 'POST';
         url2 = `https://www.swiggy.com/api/instamart/category-listing/filter/v2?storeId=${storeIds.sid}&primaryStoreId=${storeIds.pid}&secondaryStoreId=${storeIds.secid}&pageNo=1&offset=1&page_name=category_listing_filter`;
@@ -2659,16 +2681,21 @@ javascript:(async () => {
 
       const rawSku = v.skuId || v.spinId;
       const skuId = rawSku || name;
+      const rawProductId = v.productId || v.parentProductId || null;
+      const candidateId = rawProductId || (rawSku && /^[A-Za-z0-9_-]{6,16}$/.test(rawSku) ? rawSku : null);
       const imageId = v.imageIds?.[0] || v.imageId || '';
       const imageUrl = imageId
         ? `https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_360,h_360,c_fit/${imageId}`
         : null;
 
       const searchLink = `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodeURIComponent(name)}`;
-      const itemLink = searchLink;
+      const itemLink = candidateId
+        ? `https://www.swiggy.com/instamart/item/${candidateId}`
+        : searchLink;
 
       const item = {
         skuId,
+        productId: candidateId,
         name,
         brand: v.brandName || v.brand || 'Instamart',
         pack: v.quantityDescription || '',
@@ -2686,10 +2713,11 @@ javascript:(async () => {
         searchLink
       };
 
-      const existing = resultMap.get(name);
-      if (!existing || price < existing.price) {
-        resultMap.set(name, item);
-        itemsFound++;
+      const dedupKey = `${name}__${v.quantityDescription || skuId}`;
+      const existing = resultMap.get(dedupKey);
+      if (!existing || discount > existing.discount || (discount === existing.discount && price < existing.price)) {
+        if (!existing) itemsFound++;
+        resultMap.set(dedupKey, item);
       }
     }
 
@@ -2927,8 +2955,10 @@ javascript:(async () => {
       storeBadgeEl.style.color = '#166534';
       storeBadgeEl.style.borderColor = '#bbf7d0';
       if (storeDotEl) storeDotEl.style.background = '#16a34a';
-      const secText = storeIds.secid ? ` <span style="color:#64748b;font-weight:normal;">(Sec: ${storeIds.secid})</span>` : '';
-      storeTextEl.innerHTML = `🏪 Store Pod: <b>${storeIds.sid}</b>${secText}`;
+      const cleanSid = String(storeIds.sid).replace(/[^\d]/g, '');
+      const cleanSecid = storeIds.secid ? String(storeIds.secid).replace(/[^\d]/g, '') : '';
+      const secText = cleanSecid ? ` <span style="color:#64748b;font-weight:normal;">(Sec: ${cleanSecid})</span>` : '';
+      storeTextEl.innerHTML = `🏪 Store Pod: <b>${cleanSid}</b>${secText}`;
     } else {
       activeStoreIds = null;
       storeBadgeEl.style.background = '#fffbeb';
@@ -2953,6 +2983,7 @@ javascript:(async () => {
   let hasResults = false;
   let finalItemsCache = [];
   let latestMetaCache = null;
+  let resultsWin = null;
 
   // Single-Category Selection State & Accordion State:
   let selectedCat = null;
@@ -2961,7 +2992,7 @@ javascript:(async () => {
   let currentSection = 'All';
 
   function getCleanCatName(catKey) {
-    return catKey.replace(/^\S+\s/, '');
+    return catKey.replace(/^[^\w\s]+\s*/, '').trim();
   }
 
   function updateFooter() {
@@ -3441,6 +3472,14 @@ javascript:(async () => {
     <select id="brandFilter">
       <option value="">All Brands</option>
     </select>
+    <select id="minDiscountFilter">
+      <option value="0">All Discounts (0%+)</option>
+      <option value="30">30%+ OFF</option>
+      <option value="50">50%+ OFF</option>
+      <option value="60">60%+ OFF</option>
+      <option value="70">70%+ OFF</option>
+      <option value="80">80%+ OFF</option>
+    </select>
     <select id="sortSelect">
       <option value="discount-desc">🔥 Highest Discount %</option>
       <option value="savings-desc">💰 Highest Savings (₹)</option>
@@ -3462,7 +3501,7 @@ javascript:(async () => {
   <script>
     let DATA = ${serializedData} || [];
     let META = ${serializedMeta} || null;
-    let query = '', subFilter = '', brandFilter = '', sortOption = 'discount-desc';
+    let query = '', subFilter = '', brandFilter = '', minDiscountFilter = 0, sortOption = 'discount-desc';
 
     function esc(s) {
       return String(s || '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -3496,6 +3535,7 @@ javascript:(async () => {
       const q = query.trim().toLowerCase();
 
       let rows = DATA.filter((r) => {
+        if (minDiscountFilter > 0 && (r.discount || 0) < minDiscountFilter) return false;
         if (subFilter && r.subCategory !== subFilter) return false;
         if (brandFilter && r.brand !== brandFilter) return false;
         if (!q) return true;
@@ -3528,7 +3568,7 @@ javascript:(async () => {
           const imgUrl = r.imageUrl || (r.image ? ('https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_360,h_360,c_fit/' + esc(r.image)) : '');
           const brand = r.brand || 'Instamart';
           const sub = r.subCategory || '';
-          const sLink = r.searchLink || ('https://www.swiggy.com/instamart/search?custom_back=true&query=' + encodeURIComponent(r.name));
+          const sLink = r.itemLink || r.searchLink || ('https://www.swiggy.com/instamart/search?custom_back=true&query=' + encodeURIComponent(r.name));
 
           let cardHtml = '<div class="product-card">';
           if (r.discount > 0) {
@@ -3567,6 +3607,7 @@ javascript:(async () => {
     document.getElementById('search').addEventListener('input', (e) => { query = e.target.value; render(); });
     document.getElementById('subFilter').addEventListener('change', (e) => { subFilter = e.target.value; render(); });
     document.getElementById('brandFilter').addEventListener('change', (e) => { brandFilter = e.target.value; render(); });
+    document.getElementById('minDiscountFilter').addEventListener('change', (e) => { minDiscountFilter = Number(e.target.value) || 0; render(); });
     document.getElementById('sortSelect').addEventListener('change', (e) => { sortOption = e.target.value; render(); });
 
     window.__ihReceive = function (msg) {
@@ -3632,8 +3673,16 @@ javascript:(async () => {
   function openResults() {
     if (!finalItemsCache || (!finalItemsCache.length && !latestMetaCache)) return;
     const catNameClean = latestMetaCache?.categoryName || (selectedCat ? getCleanCatName(selectedCat) : 'Instamart');
+    if (resultsWin && !resultsWin.closed) {
+      try {
+        resultsWin.focus();
+        resultsWin.__ihReceive?.({ source: 'ih4', type: 'done', items: finalItemsCache, meta: latestMetaCache });
+        return;
+      } catch (e) {}
+    }
     const w = window.open('', '_blank');
     if (w) {
+      resultsWin = w;
       w.document.open();
       w.document.write(buildResultsTabHTML([catNameClean], finalItemsCache, latestMetaCache));
       w.document.close();
@@ -3672,6 +3721,20 @@ javascript:(async () => {
       return;
     }
 
+    // Open results window synchronously on click to prevent popup blockers
+    try {
+      if (!resultsWin || resultsWin.closed) {
+        resultsWin = window.open('', '_blank');
+        if (resultsWin) {
+          resultsWin.document.open();
+          resultsWin.document.write(buildResultsTabHTML([catNameClean], null, null));
+          resultsWin.document.close();
+        }
+      } else {
+        resultsWin.focus();
+      }
+    } catch (e) {}
+
     isScouting = true;
     hasResults = false;
     expandedCats.clear();
@@ -3686,6 +3749,17 @@ javascript:(async () => {
       const payload = { source: 'ih4', time: Date.now(), ...msg };
       try { sessionStorage.setItem('__IH4_LATEST_DEALS__', JSON.stringify(payload)); } catch (e) {}
       try { window.__IH4_LATEST_MSG__ = payload; } catch (e) {}
+      if (resultsWin && !resultsWin.closed) {
+        try {
+          if (typeof resultsWin.__ihReceive === 'function') {
+            resultsWin.__ihReceive(payload);
+          } else {
+            resultsWin.postMessage(payload, '*');
+          }
+        } catch (e) {
+          try { resultsWin.postMessage(payload, '*'); } catch (e2) {}
+        }
+      }
     };
 
     activeDispatch = dispatch;
@@ -3804,9 +3878,11 @@ javascript:(async () => {
     fetchBtn.textContent = `🟢 View ${finalItems.length} Deals in Results Tab ↗`;
 
     openResultsLink.style.display = 'block';
-    openResultsLink.textContent = `✨ View ${finalItems.length} Deals in Results Tab ↗`;
-
-    openResults();
+    if (!resultsWin || resultsWin.closed) {
+      openResults();
+    } else {
+      try { resultsWin.focus(); } catch (e) {}
+    }
   });
 
   quickSearchBtn.addEventListener('click', async () => {
@@ -3820,6 +3896,20 @@ javascript:(async () => {
     }
     updateStorePodDisplay(storeIds);
 
+    // Open results window synchronously on click to prevent popup blockers
+    try {
+      if (!resultsWin || resultsWin.closed) {
+        resultsWin = window.open('', '_blank');
+        if (resultsWin) {
+          resultsWin.document.open();
+          resultsWin.document.write(buildResultsTabHTML(['⚡ Quick Store Keyword Deals'], null, null));
+          resultsWin.document.close();
+        }
+      } else {
+        resultsWin.focus();
+      }
+    } catch (e) {}
+
     isScouting = true;
     hasResults = false;
     quickSearchBtn.disabled = true;
@@ -3831,6 +3921,17 @@ javascript:(async () => {
       const payload = { source: 'ih4', time: Date.now(), ...msg };
       try { sessionStorage.setItem('__IH4_LATEST_DEALS__', JSON.stringify(payload)); } catch (e) {}
       try { window.__IH4_LATEST_MSG__ = payload; } catch (e) {}
+      if (resultsWin && !resultsWin.closed) {
+        try {
+          if (typeof resultsWin.__ihReceive === 'function') {
+            resultsWin.__ihReceive(payload);
+          } else {
+            resultsWin.postMessage(payload, '*');
+          }
+        } catch (e) {
+          try { resultsWin.postMessage(payload, '*'); } catch (e2) {}
+        }
+      }
     };
 
     activeDispatch = dispatch;
@@ -3906,7 +4007,11 @@ javascript:(async () => {
     openResultsLink.style.display = 'block';
     openResultsLink.textContent = `✨ View ${finalItems.length} Deals in Results Tab ↗`;
 
-    openResults();
+    if (!resultsWin || resultsWin.closed) {
+      openResults();
+    } else {
+      try { resultsWin.focus(); } catch (e) {}
+    }
   });
 
   panel.classList.add('open');

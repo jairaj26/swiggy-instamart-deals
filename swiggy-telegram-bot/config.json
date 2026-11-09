@@ -5,6 +5,51 @@
     "secid": ""
   },
   "minDiscount": 70,
+  "brandThresholds": {
+    "Dubstep": 95,
+    "You Bella": 95,
+    "YouBella": 95,
+    "MEENAZ Resam": 95,
+    "MEENAZ": 95,
+    "I Jewels": 95,
+    "IJewels": 95,
+    "Palmonas": 95,
+    "NVR": 95,
+    "Zeneme": 95,
+    "Minutiae": 95,
+    "Nu Republic": 90,
+    "truke": 90,
+    "Tecsox": 90,
+    "Lifelong": 90,
+    "Story@Home": 90,
+    "Story @ Home": 90,
+    "The Man Company": 85,
+    "KYARI": 85,
+    "GOBOULT": 85,
+    "Boult": 85,
+    "Festive Greetings": 85,
+    "Festive Delight": 85,
+    "Festive Delights": 85,
+    "Hashwow": 85,
+    "Hash Wow": 85,
+    "Homebasic": 85,
+    "Home Basic": 85,
+    "Homebasics": 85,
+    "Capsicum": 85,
+    "ANT": 85,
+    "Ant Esports": 85,
+    "Cult": 85,
+    "Cultsport": 85,
+    "Cult.fit": 85,
+    "Cult Sport": 85,
+    "Wedel": 75,
+    "E.Wedel": 75,
+    "Ella Foods": 75,
+    "Jivo": 75,
+    "Borges": 75,
+    "Hathi": 75,
+    "Amayu": 75
+  },
   "weeklyCategories": [
     "Electronics and Appliances"
   ],
@@ -1455,22 +1500,6 @@
         },
         {
           "query": "peanut butter",
-          "minDiscount": 70
-        },
-        {
-          "query": "cookies",
-          "minDiscount": 70
-        },
-        {
-          "query": "cookie",
-          "minDiscount": 70
-        },
-        {
-          "query": "biscuits",
-          "minDiscount": 70
-        },
-        {
-          "query": "noice",
           "minDiscount": 70
         }
       ]

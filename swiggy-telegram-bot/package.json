@@ -1,7 +1,7 @@
 {
   "name": "swiggy-deal-bot",
   "version": "1.0.0",
-  "description": "Telegram Alert Bot for Swiggy Instamart deals (7-Worker Interval Hunter)",
+  "description": "Telegram Alert Bot for Swiggy Instamart deals (9-Worker Interval Hunter)",
   "main": "src/bot.js",
   "scripts": {
     "start": "node src/bot.js",
@@ -13,7 +13,9 @@
     "test:munchies": "node src/cron-runner.js munchies --skip-sync",
     "test:beverages": "node src/cron-runner.js beverages --skip-sync",
     "test:personal": "node src/cron-runner.js personal --skip-sync",
-    "test:lifestyle": "node src/cron-runner.js lifestyle --skip-sync"
+    "test:lifestyle": "node src/cron-runner.js lifestyle --skip-sync",
+    "test:household": "node src/cron-runner.js household --skip-sync",
+    "test:clearance": "node src/cron-runner.js clearance --skip-sync"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
