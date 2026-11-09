@@ -231,6 +231,14 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
       }
     }
 
+    // Guard: Noise (Brand, NOT audio feature like 'active noise cancellation' or 'noisemakers')
+    if (keyLower === 'noise') {
+      const isNoiseFeature = /\b(active\s+noise|noise\s+(?:cancellation|cancelling|reduction|isolation|maker|makers))\b/i.test(nameLower);
+      if (isNoiseFeature && brandLower !== 'noise') {
+        continue;
+      }
+    }
+
     // 1. Direct match on item.brand (if present and not generic instamart/swiggy)
     if (brandLower && brandLower !== 'instamart' && brandLower !== 'swiggy') {
       if (brandLower === keyLower || brandLower.includes(keyLower) || keyLower.includes(brandLower)) {
@@ -243,6 +251,7 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
       .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       .replace(/\\@/g, '[\\s@]+')
       .replace(/\\-/g, '[\\s\\-]+')
+      .replace(/\\&/g, '(?:&|and)')
       .replace(/\\\s+/g, '[\\s\\-_]+');
 
     const regex = new RegExp(`(^|[^a-zA-Z0-9])${patternStr}([^a-zA-Z0-9]|$)`, 'i');
