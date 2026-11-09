@@ -239,11 +239,13 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
       }
     }
 
-    // Guard: Philips & Bajaj (Only apply 80% threshold if product is a bulb/lighting)
-    if (keyLower === 'philips' || keyLower === 'bajaj') {
-      const isBulbOrLighting = /\b(bulb|bulbs|batten|battens|tubelight|tube\s*light|b22|e27|e14|cfl|night\s*lamp|led\s*light|spot\s*light|downlight)\b/i.test(nameLower) ||
-                               /\b\d+\s*w\s+(?:round\s+)?(?:led\s+)?bulb\b/i.test(nameLower);
-      if (!isBulbOrLighting) {
+    // Guard: Dual-category Lighting + Appliance brands (Philips, Bajaj, Syska, Havells, Wipro)
+    // Only apply 80% threshold if product is a bulb/batten/lighting/string light.
+    // If appliance (Mixer, Iron, Trimmer, OTG, Kettle, etc.), keep standard worker threshold.
+    if (['philips', 'bajaj', 'syska', 'havells', 'wipro'].includes(keyLower)) {
+      const isLighting = /\b(bulb|bulbs|batten|battens|tubelight|tube\s*light|b22|e27|e14|cfl|night\s*lamp|led\s*light|spot\s*light|downlight|string\s*light|fairy\s*light|strip\s*light|rope\s*light)\b/i.test(nameLower) ||
+                         /\b\d+\s*w\s+(?:round\s+)?(?:led\s+)?bulb\b/i.test(nameLower);
+      if (!isLighting) {
         continue; // Do NOT apply 80% brand threshold to appliances (Mixer, Iron, Trimmer, OTG, etc.)
       }
     }
@@ -266,6 +268,52 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
     const regex = new RegExp(`(^|[^a-zA-Z0-9])${patternStr}([^a-zA-Z0-9]|$)`, 'i');
     if (regex.test(nameLower) || regex.test(brandLower)) {
       return { brand: brandKey, threshold };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Checks if an item matches any brand in brandMaxPrices (e.g. NVR max price ₹10).
+ *
+ * @param {Object} item - Product item { name, brand, ... }
+ * @param {Object} brandMaxPrices - Map of brand name to max price limit
+ * @returns {{ brand: string, maxPrice: number } | null}
+ */
+function getBrandMaxPriceMatch(item, brandMaxPrices = {}) {
+  if (!brandMaxPrices || typeof brandMaxPrices !== 'object') return null;
+
+  const rawBrand = (item.brand || '').trim();
+  const rawName = (item.name || '').trim();
+  const brandLower = rawBrand.toLowerCase();
+  const nameLower = rawName.toLowerCase();
+
+  for (const [brandKey, maxPriceVal] of Object.entries(brandMaxPrices)) {
+    const maxPrice = typeof maxPriceVal === 'number' ? maxPriceVal : parseFloat(maxPriceVal);
+    if (isNaN(maxPrice)) continue;
+
+    const keyLower = brandKey.toLowerCase().trim();
+    if (!keyLower) continue;
+
+    // 1. Direct match on item.brand
+    if (brandLower && brandLower !== 'instamart' && brandLower !== 'swiggy') {
+      if (brandLower === keyLower || brandLower.includes(keyLower) || keyLower.includes(brandLower)) {
+        return { brand: brandKey, maxPrice };
+      }
+    }
+
+    // 2. Safe regex word boundary matching on item.name and item.brand
+    let patternStr = keyLower
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\\@/g, '[\\s@]+')
+      .replace(/\\-/g, '[\\s\\-]+')
+      .replace(/\\&/g, '(?:&|and)')
+      .replace(/\\\s+/g, '[\\s\\-_]+');
+
+    const regex = new RegExp(`(^|[^a-zA-Z0-9])${patternStr}([^a-zA-Z0-9]|$)`, 'i');
+    if (regex.test(nameLower) || regex.test(brandLower)) {
+      return { brand: brandKey, maxPrice };
     }
   }
 
@@ -319,6 +367,7 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
   const seenInCurrentRun = new Map();
   let totalMetCriteria = 0;
   let discardedByBrandThreshold = 0;
+  let discardedByBrandPriceCap = 0;
 
   // Resolve Brand Thresholds (options > env > config)
   let envBrandDiscounts = {};
@@ -333,6 +382,11 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
     ...(config.brandThresholds || {}),
     ...(options.brandThresholds || {}),
     ...envBrandDiscounts
+  };
+
+  const brandMaxPrices = {
+    ...(config.brandMaxPrices || {}),
+    ...(options.brandMaxPrices || {})
   };
 
   for (const item of items) {
@@ -363,6 +417,13 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
     if (brandMatch && item.discount < brandMatch.threshold) {
       discardedByBrandThreshold++;
       continue; // Discard: passes worker threshold, but fails specific brand threshold
+    }
+
+    // Layer 3: Brand-Specific Price Cap (e.g. NVR must be <= ₹10)
+    const brandPriceCapMatch = getBrandMaxPriceMatch(item, brandMaxPrices);
+    if (brandPriceCapMatch && item.price > brandPriceCapMatch.maxPrice) {
+      discardedByBrandPriceCap++;
+      continue; // Discard: passes discount threshold, but price exceeds brand price cap
     }
 
     totalMetCriteria++;
@@ -522,7 +583,7 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
   alertList.sort((a, b) => b.discount - a.discount);
 
   const suppressedCount = Math.max(0, totalMetCriteria - alertList.length);
-  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Discarded by Brand Threshold: ${discardedByBrandThreshold} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount} (Cycle: ${refreshCycle}/${cycleId})`);
+  console.log(`[DealTracker:${campaignKey}] Total Scanned: ${items.length} | Meets Criteria: ${totalMetCriteria} | Discarded by Brand Threshold: ${discardedByBrandThreshold} | Discarded by Price Cap: ${discardedByBrandPriceCap} | Alerts Sent: ${alertList.length} | Suppressed Duplicates: ${suppressedCount} (Cycle: ${refreshCycle}/${cycleId})`);
 
   // Update run metadata
   cache.lastDate = dateStr;
@@ -579,6 +640,7 @@ module.exports = {
   saveCache,
   findAlertWorthyDeals,
   getBrandThresholdMatch,
+  getBrandMaxPriceMatch,
   getCachedDeals,
   getIstContext
 };

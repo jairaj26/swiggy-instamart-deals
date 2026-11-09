@@ -42,7 +42,21 @@
     "Story@Home": 90,
     "Story @ Home": 90,
     "Metro Living": 90,
+    "Quace": 90,
 
+    "SATYAM KRAFT": 85,
+    "Satyam Kraft": 85,
+    "Satyamkraft": 85,
+    "Cotton Colors": 85,
+    "Cottoncolors": 85,
+    "Cortina": 85,
+    "TIED RIBBONS": 85,
+    "Tied Ribbons": 85,
+    "Tiedribbons": 85,
+    "Casacraft": 85,
+    "Casa Craft": 85,
+    "Java Plastic": 85,
+    "Java Plastics": 85,
     "HOME ESSENTIALS": 85,
     "Home Essentials": 85,
     "DREAM WEAVERZ": 85,
@@ -109,6 +123,9 @@
     "Amayu": 80,
     "Philips": 80,
     "Bajaj": 80,
+    "Syska": 80,
+    "Havells": 80,
+    "Wipro": 80,
 
     "Supreme Harvest": 75,
     "Wedel": 75,
@@ -119,6 +136,9 @@
     "Hathi": 75,
 
     "921": 70
+  },
+  "brandMaxPrices": {
+    "NVR": 10
   },
   "weeklyCategories": [
     "Electronics and Appliances"
