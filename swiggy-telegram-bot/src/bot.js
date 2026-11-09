@@ -299,18 +299,18 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `🏷️ <b>Brand-Specific Second-Layer Thresholds:</b>\n\n` +
       `Items passing the worker threshold must also pass these brand thresholds before alerting:\n\n` +
       `🔥 <b>≥ 95% OFF:</b>\n` +
-      `• Dubstep, You Bella, MEENAZ Resam, I Jewels, Palmonas, NVR, Zeneme, Minutiae, HINDCRAFT, Toyshine\n\n` +
+      `• Dubstep, You Bella, MEENAZ Resam, I Jewels, Palmonas, NVR, Zeneme, Minutiae, HINDCRAFT, Toyshine, DesiDiya\n\n` +
       `⚡ <b>≥ 90% OFF:</b>\n` +
-      `• HAMMER, boAt, Portronics, Noise, JASHN, Clazkit, Festivora, BSB, Bersache, Nu Republic, truke, Tecsox, Lifelong, Story@Home\n\n` +
+      `• HAMMER, boAt, Portronics, Noise, JASHN, Clazkit, Festivora, BSB, Bersache, Nu Republic, truke, Tecsox, Lifelong, Story@Home, Metro Living\n\n` +
       `✨ <b>≥ 85% OFF:</b>\n` +
-      `• Home Centre, Home Stop, Furnofy, Birch & Co., Tupperware, Ekta, Party Propz, Crompton, Anwaliya, PrettyKrafts, Soham, Ambrane, Sheen, Tizum, Orient Electric, Dynore, Jaypee, TrustBasket, Home Truths, The Man Company, KYARI, GOBOULT (Boult), Festive Greetings, Festive Delight, Hashwow, Homebasic, Capsicum (Brand), ANT (Ant Esports), Cult (Cultsport)\n\n` +
+      `• HOME ESSENTIALS, DREAM WEAVERZ, Gizga, EVM, Fendo, Home Centre, Home Stop, Furnofy, Birch & Co., Tupperware, Ekta, Party Propz, Crompton, Anwaliya, PrettyKrafts, Soham, Ambrane, Sheen, Tizum, Orient Electric, Dynore, Jaypee, TrustBasket, Home Truths, The Man Company, KYARI, GOBOULT (Boult), Festive Greetings, Festive Delight, Hashwow, Homebasic, Capsicum (Brand), ANT (Ant Esports), Cult (Cultsport)\n\n` +
       `🎯 <b>≥ 80% OFF:</b>\n` +
-      `• Dr Trust (Dr Physio), Nutripro, Oye Happy, Raymond, Del Monte, Amayu\n\n` +
+      `• Philips (Bulbs only), Bajaj (Bulbs only), Dr Trust (Dr Physio), Nutripro, Oye Happy, Raymond, Del Monte, Amayu\n\n` +
       `🌾 <b>≥ 75% OFF:</b>\n` +
       `• Supreme Harvest, Wedel, Ella Foods, Jivo, Borges, Hathi\n\n` +
       `🍚 <b>≥ 70% OFF:</b>\n` +
       `• 921\n\n` +
-      `<i>💡 All other brands only need to pass the standard worker discount threshold.</i>`,
+      `<i>💡 Note: Philips and Bajaj appliances (Mixers, Irons, etc.) use standard worker threshold. All other brands only need to pass the standard worker discount threshold.</i>`,
       { parse_mode: 'HTML' }
     );
   });

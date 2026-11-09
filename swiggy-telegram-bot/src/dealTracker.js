@@ -239,6 +239,15 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
       }
     }
 
+    // Guard: Philips & Bajaj (Only apply 80% threshold if product is a bulb/lighting)
+    if (keyLower === 'philips' || keyLower === 'bajaj') {
+      const isBulbOrLighting = /\b(bulb|bulbs|batten|battens|tubelight|tube\s*light|b22|e27|e14|cfl|night\s*lamp|led\s*light|spot\s*light|downlight)\b/i.test(nameLower) ||
+                               /\b\d+\s*w\s+(?:round\s+)?(?:led\s+)?bulb\b/i.test(nameLower);
+      if (!isBulbOrLighting) {
+        continue; // Do NOT apply 80% brand threshold to appliances (Mixer, Iron, Trimmer, OTG, etc.)
+      }
+    }
+
     // 1. Direct match on item.brand (if present and not generic instamart/swiggy)
     if (brandLower && brandLower !== 'instamart' && brandLower !== 'swiggy') {
       if (brandLower === keyLower || brandLower.includes(keyLower) || keyLower.includes(brandLower)) {
