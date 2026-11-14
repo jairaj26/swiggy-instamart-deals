@@ -103,7 +103,12 @@ function normalizeProductName(name) {
 
 function extractPackFromItem(item) {
   if (item.pack && typeof item.pack === 'string' && item.pack.trim()) {
-    return item.pack.trim().toLowerCase().replace(/\s+/g, '');
+    return item.pack
+      .trim()
+      .toLowerCase()
+      .replace(/\s*(?:x|\*)\s*\d+\b/gi, '')
+      .replace(/\b(?:pack|set|combo)\s*of\s*\d+\b/gi, '')
+      .replace(/\s+/g, '');
   }
   if (item.name && typeof item.name === 'string') {
     const m = item.name.match(/\b\d+(?:\.\d+)?\s*(?:ml|l|ltr|litres?|g|gm|gms|grams?|kg|kgs|pcs|pieces?|pack|units?)\b/i);
@@ -391,12 +396,14 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
 
   for (const item of items) {
     let threshold = 70;
+    const itemMin = (item.minDiscount !== undefined && item.minDiscount !== null)
+      ? item.minDiscount
+      : ((item.threshold !== undefined && item.threshold !== null) ? item.threshold : null);
+
     if (options.forceThreshold && typeof minDiscount === 'number') {
-      threshold = minDiscount;
-    } else if (item.minDiscount !== undefined && item.minDiscount !== null) {
-      threshold = item.minDiscount;
-    } else if (item.threshold !== undefined && item.threshold !== null) {
-      threshold = item.threshold;
+      threshold = itemMin !== null ? Math.max(minDiscount, itemMin) : minDiscount;
+    } else if (itemMin !== null) {
+      threshold = itemMin;
     } else if (options.categoryThresholds && options.categoryThresholds[item.category]) {
       threshold = options.categoryThresholds[item.category];
     } else if (typeof minDiscount === 'object' && minDiscount !== null) {
@@ -445,6 +452,8 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
         existingAlert.productId = item.productId;
         existingAlert.skuId = item.skuId;
         existingAlert.parentProductId = item.parentProductId;
+        existingAlert.podId = item.podId;
+        existingAlert.pack = item.pack;
         if (cache.items[itemKey]) {
           cache.items[itemKey].price = item.price;
           cache.items[itemKey].discount = item.discount;
@@ -459,8 +468,10 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
 
     // Determine cycle for this specific item:
     // If weeklyCategories includes item.category, or if campaign-level refreshCycle is weekly
-    const isItemWeekly = (weeklyCategories && weeklyCategories.includes(item.category))
-      || (refreshCycle === 'weekly');
+    const isItemWeekly = (weeklyCategories && (
+      weeklyCategories.includes(item.category) ||
+      (item.superCategory && weeklyCategories.includes(item.superCategory))
+    )) || (refreshCycle === 'weekly');
     const itemCycle = isItemWeekly ? 'weekly' : 'daily';
     const itemCycleId = isItemWeekly ? weeklyCycleId : dailyCycleId;
     const isFirstRunOfItemCycle = isItemWeekly ? isWeeklyFirstRun : isDailyFirstRun;
@@ -530,6 +541,8 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
       cache.items[itemKey] = {
         name: item.name,
         category: item.category || '',
+        superCategory: item.superCategory || '',
+        podId: item.podId || null,
         skuId: item.skuId || null,
         productId: item.productId || null,
         parentProductId: item.parentProductId || null,
@@ -554,6 +567,8 @@ function findAlertWorthyDeals(items, minDiscount = 70, campaignKey = 'default', 
         cache.items[itemKey] = {
           name: item.name,
           category: item.category || '',
+          superCategory: item.superCategory || '',
+          podId: item.podId || null,
           skuId: item.skuId || null,
           productId: item.productId || null,
           parentProductId: item.parentProductId || null,

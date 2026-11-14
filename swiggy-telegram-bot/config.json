@@ -213,12 +213,6 @@
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
-          "category": "Fresh Vegetables",
-          "name": "Fresh Fruits",
-          "id": "6822eeeded32000001e25aad",
-          "taxonomyType": "Speciality taxonomy 1"
-        },
-        {
           "category": "Fresh Fruits",
           "name": "Fresh Fruits",
           "id": "6822eeeded32000001e25aaf",
@@ -270,12 +264,6 @@
           "category": "Fresh Fruits",
           "name": "Frozen Fruits",
           "id": "68b689ee4dd82b0001d869d1",
-          "taxonomyType": "Speciality taxonomy 1"
-        },
-        {
-          "category": "Fresh Fruits",
-          "name": "Fresh Vegetables",
-          "id": "6822eeeded32000001e25ab8",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
@@ -420,12 +408,6 @@
           "category": "Meat and Seafood",
           "name": "Dry Fish",
           "id": "692951068ff2590001fe7c7b",
-          "taxonomyType": "Speciality taxonomy 1"
-        },
-        {
-          "category": "Meat and Seafood",
-          "name": "Eggs",
-          "id": "6822eeeded32000001e25b44",
           "taxonomyType": "Speciality taxonomy 1"
         },
         {
@@ -774,44 +756,8 @@
         },
         {
           "category": "Cereals and Breakfast",
-          "name": "Peanut Butters",
-          "id": "69492faa195bc000019a3b14",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
-          "name": "Chocolate Spreads",
-          "id": "69492faa195bc000019a3b15",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
           "name": "Masala Oats",
           "id": "698499a8e171b800015b5d68",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
-          "name": "Jams",
-          "id": "69492faa195bc000019a3b1b",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
-          "name": "Juices & Fruit Drinks",
-          "id": "69492faa195bc000019a3b1a",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
-          "name": "Mayo & Spreads",
-          "id": "69492faa195bc000019a3b16",
-          "taxonomyType": "taxonomy 5"
-        },
-        {
-          "category": "Cereals and Breakfast",
-          "name": "Hot Beverages",
-          "id": "69492faa195bc000019a3b19",
           "taxonomyType": "taxonomy 5"
         },
         {
@@ -871,6 +817,11 @@
         {
           "query": "seasoning",
           "minDiscount": 60
+        },
+        {
+          "query": "1 kg",
+          "minDiscount": 60,
+          "types": ["Atta", "Besan, Sooji and Maida", "Dal and Pulses", "Rice", "Oats", "Muesli and Granola", "Quinoa", "Sugar", "Salt"]
         }
       ]
     },
@@ -1241,15 +1192,7 @@
           "minDiscount": 70
         },
         {
-          "query": "cookie",
-          "minDiscount": 70
-        },
-        {
           "query": "biscuits",
-          "minDiscount": 70
-        },
-        {
-          "query": "biscuit",
           "minDiscount": 70
         },
         {
@@ -1259,6 +1202,11 @@
         {
           "query": "noice",
           "minDiscount": 70
+        },
+        {
+          "query": "pack",
+          "minDiscount": 70,
+          "types": ["Indian Sweets", "Indian Sweets Gift Pack", "Chocolate Boxes and Gifts", "Biscuits Gift Box Packs", "Milk Chocolates", "Candies and More"]
         }
       ]
     },
@@ -1591,6 +1539,24 @@
         {
           "query": "peanut butter",
           "minDiscount": 70
+        },
+        {
+          "query": "mixture",
+          "minDiscount": 70
+        },
+        {
+          "query": "bhujia",
+          "minDiscount": 70
+        },
+        {
+          "query": "snacks",
+          "minDiscount": 70,
+          "types": ["Namkeens", "Chips", "Namkeen Snacks", "Puffs and Crunchies", "Popcorn", "Wafer,Rusk and Cracker"]
+        },
+        {
+          "query": "pack",
+          "minDiscount": 70,
+          "types": ["Dry Fruit Gift Packs", "Namkeens and Sweets Gift Box Packs", "Gift Box", "Gift Packs"]
         }
       ]
     },

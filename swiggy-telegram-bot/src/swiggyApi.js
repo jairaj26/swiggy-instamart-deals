@@ -38,6 +38,22 @@ function findBrowserExecutable() {
 
 function extractVariations(node, out, parentInfo = {}) {
   if (!node || typeof node !== 'object') return;
+
+  // 1. Skip promotional InlineBanners and Sold-Out OOS widgets
+  const cardType = node['@type'] || '';
+  if (
+    cardType.includes('InlineBanner') ||
+    cardType.includes('OOSItemCollectionCard') ||
+    node.adTag === 'SPONSORED'
+  ) {
+    return;
+  }
+
+  // 2. Skip individual sponsored ad products in search/category grids
+  if (Array.isArray(node.badges) && node.badges.some((b) => b?.type === 'BADGE_TYPE_AD')) {
+    return;
+  }
+
   const currentParent = {
     productId: node.productId || node.product_id || (node.id && /^[A-Za-z0-9_-]{6,16}$/.test(node.id) ? node.id : null) || parentInfo.productId,
     parentProductId: node.parentProductId || node.parent_product_id || parentInfo.parentProductId,
@@ -67,17 +83,23 @@ function parseItemsFromData(data) {
   if (!rawList.length) return [];
 
   const items = [];
+  const seenSkus = new Set();
+
   for (const v of rawList) {
     if (v.inventory?.inStock === false) continue;
-    const mrp = parseFloat(v.price?.mrp?.units || v.price?.mrp || 0);
-    const price = parseFloat(v.price?.offerPrice?.units || v.price?.offerPrice || 0);
-    const discount = mrp > 0 ? ((mrp - price) / mrp) * 100 : 0;
-    const roundedDiscount = Math.round(discount);
     const name = v.displayName;
     if (!name) continue;
 
     const rawSku = v.skuId || v.spinId;
     const skuId = rawSku || name;
+    if (seenSkus.has(skuId)) continue;
+    seenSkus.add(skuId);
+
+    const mrp = parseFloat(v.price?.mrp?.units || v.price?.mrp || 0);
+    const price = parseFloat(v.price?.offerPrice?.units || v.price?.offerPrice || 0);
+    const discount = mrp > 0 ? ((mrp - price) / mrp) * 100 : 0;
+    const roundedDiscount = Math.round(discount);
+
     const parentProductId = v.parentProductId || null;
     const rawProductId = v.productId || v.parentProductId || null;
     const candidateId = rawProductId || (rawSku && /^[A-Za-z0-9_-]{6,16}$/.test(rawSku) ? rawSku : null);
@@ -96,11 +118,13 @@ function parseItemsFromData(data) {
       productId: candidateId,
       name,
       parentProductId,
+      podId: v.podId ? String(v.podId) : null,
       brand: v.brandName || v.brand || 'Instamart',
       pack: v.quantityDescription || '',
       price,
       mrp,
       discount: roundedDiscount,
+      superCategory: v.superCategory || '',
       category: v.category || '',
       subCategory: v.subCategoryType || '',
       rating: v.rating?.value ? `${v.rating.value} ★` : null,
@@ -177,6 +201,24 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
 
   try {
     const page = await browser.newPage();
+    if (process.env.SWIGGY_COOKIE) {
+      const rawCookies = process.env.SWIGGY_COOKIE.split(';').map((c) => c.trim()).filter(Boolean);
+      const cookieObjs = [];
+      for (const pair of rawCookies) {
+        const eqIdx = pair.indexOf('=');
+        if (eqIdx > 0) {
+          const name = pair.slice(0, eqIdx).trim();
+          const value = pair.slice(eqIdx + 1).trim();
+          if (name && value) {
+            cookieObjs.push({ name, value, domain: '.swiggy.com', path: '/' });
+            cookieObjs.push({ name, value, domain: '.instamart.in', path: '/' });
+          }
+        }
+      }
+      if (cookieObjs.length > 0) {
+        await page.setCookie(...cookieObjs).catch(() => {});
+      }
+    }
     await page.goto('https://instamart.in', { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
     await sleep(5500);
 
@@ -187,10 +229,11 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
     }
 
     const scrapedData = await page.evaluate(async (m, sid, pid, secid, opt) => {
+      const alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       const rand5 = () => Math.floor(10000 + Math.random() * 90000).toString();
       const makeMatcher = () => {
         const raw = rand5() + Date.now().toString() + rand5();
-        return raw.split('').map((d) => (parseInt(d, 10) + 7).toString(36)).join('');
+        return raw.replace(/[a-zA-Z0-9]/g, (c) => alpha[(alpha.indexOf(c) + 7) % alpha.length]);
       };
       const pSleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -211,7 +254,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
             const url = `https://instamart.in/api/instamart/collection/items?collectionId=${coll.id}&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${offset}&serviceLine=INSTAMART`;
             try {
               const res = await fetch(url, {
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
                 credentials: 'include'
               });
               if (res.status === 200) {
@@ -246,7 +289,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
             const url = `https://instamart.in/api/instamart/collection/items?collectionId=${item.coll.id}&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${item.offset}&serviceLine=INSTAMART`;
             try {
               const res = await fetch(url, {
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
                 credentials: 'include'
               });
               if (res.status === 200) {
@@ -271,7 +314,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           const url = `https://instamart.in/api/instamart/collection/items?collectionId=397320&isMonetised=true&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&offset=${offset}&serviceLine=INSTAMART`;
           try {
             const res = await fetch(url, {
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
               credentials: 'include'
             });
             if (res.status !== 200) break;
@@ -297,7 +340,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         const cat = opt.categoryObj;
         const catUrl = `https://instamart.in/api/instamart/category-listing/v2?categoryName=${encodeURIComponent(cat.name)}&taxonomyType=${encodeURIComponent(cat.tType)}&offset=0&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
         const catRes = await fetch(catUrl, {
-          headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+          headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
           credentials: 'include'
         });
         const catJson = await catRes.json();
@@ -338,7 +381,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           try {
             const fRes = await fetch(filterUrl, {
               method: 'POST',
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
               body: JSON.stringify(body),
               credentials: 'include'
             });
@@ -378,7 +421,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           try {
             const fRes = await fetch(filterUrl, {
               method: 'POST',
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
               body: JSON.stringify(body),
               credentials: 'include'
             });
@@ -419,7 +462,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
             try {
               const fRes = await fetch(filterUrl, {
                 method: 'POST',
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
                 body: JSON.stringify(body),
                 credentials: 'include'
               });
@@ -445,9 +488,17 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           const kw = searchKeywords[k];
           const queryStr = typeof kw === 'string' ? kw : kw.query;
           const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+          let facets = [];
+          if (typeof kw === 'object' && kw !== null) {
+            if (Array.isArray(kw.facets)) {
+              facets = kw.facets;
+            } else if (Array.isArray(kw.types) && kw.types.length > 0) {
+              facets = [{ id: 'type', facet_info: kw.types.map((t) => ({ value: t })) }];
+            }
+          }
           const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
           const searchBody = {
-            facets: [],
+            facets,
             sortAttribute: 'discountPercentHighToLow',
             query: queryStr,
             search_results_offset: '0',
@@ -458,7 +509,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           try {
             const sRes = await fetch(searchUrl, {
               method: 'POST',
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
               body: JSON.stringify(searchBody),
               credentials: 'include'
             });
@@ -487,9 +538,17 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
           for (const kw of failedKeywords) {
             const queryStr = typeof kw === 'string' ? kw : kw.query;
             const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+            let facets = [];
+            if (typeof kw === 'object' && kw !== null) {
+              if (Array.isArray(kw.facets)) {
+                facets = kw.facets;
+              } else if (Array.isArray(kw.types) && kw.types.length > 0) {
+                facets = [{ id: 'type', facet_info: kw.types.map((t) => ({ value: t })) }];
+              }
+            }
             const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
             const searchBody = {
-              facets: [],
+              facets,
               sortAttribute: 'discountPercentHighToLow',
               query: queryStr,
               search_results_offset: '0',
@@ -499,7 +558,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
             try {
               const sRes = await fetch(searchUrl, {
                 method: 'POST',
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
                 body: JSON.stringify(searchBody),
                 credentials: 'include'
               });
@@ -550,7 +609,7 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
             try {
               const res = await fetch(searchUrl, {
                 method: 'POST',
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher() },
+                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
                 body: JSON.stringify(searchBody),
                 credentials: 'include'
               });
@@ -929,9 +988,17 @@ async function fetchEssentialAisleDealsDirect(storeConfig, options = {}) {
     for (const kw of searchKeywords) {
       const queryStr = typeof kw === 'string' ? kw : kw.query;
       const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
+      let facets = [];
+      if (typeof kw === 'object' && kw !== null) {
+        if (Array.isArray(kw.facets)) {
+          facets = kw.facets;
+        } else if (Array.isArray(kw.types) && kw.types.length > 0) {
+          facets = [{ id: 'type', facet_info: kw.types.map((t) => ({ value: t })) }];
+        }
+      }
       const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
       const searchBody = {
-        facets: [],
+        facets,
         sortAttribute: 'discountPercentHighToLow',
         query: queryStr,
         search_results_offset: '0',
