@@ -301,13 +301,13 @@ Send: <code>/store &lt;primaryId&gt; [secondaryId]</code>
       `🔥 <b>≥ 95% OFF:</b>\n` +
       `• Dubstep, You Bella, MEENAZ Resam, I Jewels, Palmonas, NVR (Price ≤ ₹10), Zeneme, Minutiae, HINDCRAFT, Toyshine, DesiDiya\n\n` +
       `⚡ <b>≥ 90% OFF:</b>\n` +
-      `• Quace, HAMMER, boAt, Portronics, Noise, JASHN, Clazkit, Festivora, BSB, Bersache, Nu Republic, truke, Tecsox, Lifelong, Story@Home, Metro Living\n\n` +
+      `• Ant (Ant Esports), Sheen, Bombay Shaving Company, Quace, HAMMER, boAt, Portronics, Noise, JASHN, Clazkit, Festivora, BSB, Bersache, Nu Republic, truke, Tecsox, Lifelong, Story@Home, Metro Living\n\n` +
       `✨ <b>≥ 85% OFF:</b>\n` +
-      `• SATYAM KRAFT, Cotton Colors, Cortina, TIED RIBBONS, Casacraft, Java Plastic, HOME ESSENTIALS, DREAM WEAVERZ, Gizga, EVM, Fendo, Home Centre, Home Stop, Furnofy, Birch & Co., Tupperware, Ekta, Party Propz, Crompton, Anwaliya, PrettyKrafts, Soham, Ambrane, Sheen, Tizum, Orient Electric, Dynore, Jaypee, TrustBasket, Home Truths, The Man Company, KYARI, GOBOULT (Boult), Festive Greetings, Festive Delight, Hashwow, Homebasic, Capsicum (Brand), ANT (Ant Esports), Cult (Cultsport)\n\n` +
+      `• Amayu, Carlton London, Airganic, Toreto, QUARANT, Xtrim, UrbanFix, VIHOMI, Bulfyss, Fadman, SATYAM KRAFT, Cotton Colors, Cortina, TIED RIBBONS, Casacraft, Java Plastic, HOME ESSENTIALS, DREAM WEAVERZ, Gizga, EVM, Fendo, Home Centre, Home Stop, Furnofy, Birch & Co., Tupperware, Ekta, Party Propz, Crompton, Anwaliya, PrettyKrafts, Soham, Ambrane, Tizum, Orient Electric, Dynore, Jaypee, TrustBasket, Home Truths, The Man Company, KYARI, GOBOULT (Boult), Festive Greetings, Festive Delight, Hashwow, Homebasic, Capsicum (Brand), Cult (Cultsport)\n\n` +
       `🎯 <b>≥ 80% OFF:</b>\n` +
-      `• Philips (Bulbs only), Bajaj (Bulbs only), Syska (Bulbs only), Havells (Bulbs only), Wipro (Bulbs only), Dr Trust (Dr Physio), Nutripro, Oye Happy, Raymond, Del Monte, Amayu\n\n` +
+      `• Phulwaa, Bella Vita, Wonderland, Plush, Dermatouch, Skinside, EAT Anytime, Awsum, nectr, Indian Snack House, Philips (Bulbs only), Bajaj (Bulbs only), Syska (Bulbs only), Havells (Bulbs only), Wipro (Bulbs only), Dr Trust (Dr Physio), Nutripro, Oye Happy, Raymond, Del Monte\n\n` +
       `🌾 <b>≥ 75% OFF:</b>\n` +
-      `• Supreme Harvest, Wedel, Ella Foods, Jivo, Borges, Hathi\n\n` +
+      `• Disano, Supreme Harvest, Wedel, Ella Foods, Jivo, Borges, Hathi\n\n` +
       `🍚 <b>≥ 70% OFF:</b>\n` +
       `• 921\n\n` +
       `<i>💡 Note: Lighting brands (Philips, Bajaj, Syska, Havells, Wipro) apply ≥80% only to bulbs/battens/string lights; appliances (Mixers, Irons, Trimmers, etc.) use standard worker threshold. NVR alerts only if price ≤ ₹10. All other brands only need to pass the standard worker discount threshold.</i>`,

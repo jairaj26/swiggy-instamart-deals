@@ -244,6 +244,14 @@ function getBrandThresholdMatch(item, brandThresholds = {}) {
       }
     }
 
+    // Guard: Plush (Hygiene / personal care brand, NOT plush toy / plush cushion / plush fabric)
+    if (keyLower === 'plush') {
+      const isPlushFabricOrToy = /\b(toy|toys|teddy|bear|cushion|cushions|pillow|pillows|blanket|blankets|throw|carpet|rug|slippers|velvet|fleece|plushie|plushies)\b/i.test(nameLower);
+      if (isPlushFabricOrToy && brandLower !== 'plush') {
+        continue;
+      }
+    }
+
     // Guard: Dual-category Lighting + Appliance brands (Philips, Bajaj, Syska, Havells, Wipro)
     // Only apply 80% threshold if product is a bulb/batten/lighting/string light.
     // If appliance (Mixer, Iron, Trimmer, OTG, Kettle, etc.), keep standard worker threshold.
