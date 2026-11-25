@@ -219,8 +219,18 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         await page.setCookie(...cookieObjs).catch(() => {});
       }
     }
-    await page.goto('https://instamart.in', { waitUntil: 'domcontentloaded', timeout: 35000 }).catch(() => {});
+    let navStatus = null;
+    try {
+      const navRes = await page.goto('https://instamart.in', { waitUntil: 'domcontentloaded', timeout: 35000 });
+      navStatus = navRes ? navRes.status() : null;
+    } catch (navErr) {
+      console.warn(`[SwiggyAPI] Initial navigation warning (${mode}):`, navErr.message);
+    }
     await sleep(5500);
+    if (navStatus === 202 || navStatus === 403 || navStatus === 429) {
+      console.warn(`[SwiggyAPI] Initial page returned HTTP ${navStatus}; waiting 4s for challenge/cooldown...`);
+      await sleep(4000);
+    }
 
     if (options.onProgress) {
       await page.exposeFunction('onBrowserProgress', (current, total, name) => {
@@ -228,7 +238,10 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       });
     }
 
-    const scrapedData = await page.evaluate(async (m, sid, pid, secid, opt) => {
+    const evaluateScrape = () => page.evaluate(async (m, sid, pid, secid, opt) => {
+      const baseOrigin = (window.location?.origin && window.location.origin.startsWith('http'))
+        ? window.location.origin
+        : 'https://instamart.in';
       const alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       const rand5 = () => Math.floor(10000 + Math.random() * 90000).toString();
       const makeMatcher = () => {
@@ -236,6 +249,12 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
         return raw.replace(/[a-zA-Z0-9]/g, (c) => alpha[(alpha.indexOf(c) + 7) % alpha.length]);
       };
       const pSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const makeHeaders = () => ({
+        'accept': '*/*',
+        'content-type': 'application/json',
+        'matcher': makeMatcher(),
+        'x-build-version': '2.393.0'
+      });
 
       if (m === 'noice') {
         const collections = opt.noiceCollections || [];
@@ -396,61 +415,95 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       }
 
       if (m === 'aisles') {
-        const subcategories = opt.subcategories || [];
-        const rawPages = [];
-        const failedSubcategories = [];
-        const total = subcategories.length;
-
-        for (let i = 0; i < total; i++) {
-          const item = subcategories[i];
-          if (window.onBrowserProgress) {
-            await window.onBrowserProgress(i + 1, total, item.name);
-          }
-
-          const filterUrl = `https://instamart.in/api/instamart/category-listing/filter/v2?storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
-          const body = {
-            categoryName: item.category,
-            filterName: item.name,
-            filterId: item.id,
-            taxonomyType: item.taxonomyType || 'taxonomy 5',
-            items_offset: '0',
-            facets: [],
-            sortAttribute: 'discountPercentHighToLow'
-          };
-
+        const stats = { statuses: {}, empty200: 0, lastError: null };
+        const postJson = async (url, body) => {
           try {
-            const fRes = await fetch(filterUrl, {
+            const res = await fetch(url, {
               method: 'POST',
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
+              headers: makeHeaders(),
               body: JSON.stringify(body),
               credentials: 'include'
             });
-            const fJson = await fRes.json().catch(() => null);
-            if (fRes.status === 200 && fJson?.data) {
-              fJson._meta = {
-                category: item.category,
-                subCategory: item.name,
-                dealType: opt.dealType || 'essential',
-                threshold: item.minDiscount || item.threshold,
-                minDiscount: item.minDiscount || item.threshold
-              };
-              rawPages.push(fJson);
-            } else {
-              failedSubcategories.push(item);
+            const key = String(res.status);
+            stats.statuses[key] = (stats.statuses[key] || 0) + 1;
+            const json = await res.json().catch(() => null);
+            if (res.status === 200 && json?.data) {
+              return { ok: true, status: res.status, json };
             }
+            if (res.status === 200 && !json?.data) {
+              stats.empty200++;
+            }
+            return { ok: false, status: res.status, json: null };
           } catch (e) {
-            failedSubcategories.push(item);
+            stats.statuses.error = (stats.statuses.error || 0) + 1;
+            stats.lastError = e.message || String(e);
+            return { ok: false, status: 0, json: null };
+          }
+        };
+
+        const runBatchWithRetry = async (entries, buildRequest, reportProgress) => {
+          const pages = [];
+          const failed = [];
+          let consecutiveFails = 0;
+          let sawThrottle = false;
+
+          for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            if (reportProgress && window.onBrowserProgress) {
+              await window.onBrowserProgress(i + 1, entries.length, entry.name);
+            }
+            const { url, body, meta } = buildRequest(entry);
+            const res = await postJson(url, body);
+            if (res.ok) {
+              consecutiveFails = 0;
+              res.json._meta = meta;
+              pages.push(res.json);
+            } else {
+              consecutiveFails++;
+              failed.push(entry);
+              if (res.status === 429 || res.status === 403 || res.status === 202) {
+                sawThrottle = true;
+                await pSleep((res.status === 429 ? 3000 : 2000) + Math.random() * 1200);
+              }
+              // Pause Pass 1 early on consecutive blocks so Pass 2 can recover after cooldown
+              if (consecutiveFails >= 5 && i < entries.length - 1) {
+                for (let j = i + 1; j < entries.length; j++) {
+                  failed.push(entries[j]);
+                }
+                break;
+              }
+            }
+            await pSleep(220 + Math.random() * 130);
           }
 
-          await pSleep(200 + Math.random() * 100);
-        }
+          if (failed.length > 0) {
+            await pSleep(sawThrottle ? 5000 : 1800);
+            for (const entry of failed) {
+              const { url, body, meta } = buildRequest(entry);
+              let res = await postJson(url, body);
+              if (!res.ok && (res.status === 429 || res.status === 403 || res.status === 202)) {
+                await pSleep(3500 + Math.random() * 1500);
+                res = await postJson(url, body);
+              }
+              if (res.ok) {
+                res.json._meta = meta;
+                pages.push(res.json);
+              }
+              await pSleep(450 + Math.random() * 250);
+            }
+          }
 
-        // Pass 2: Retry throttled subcategories after a short cooldown
-        if (failedSubcategories.length > 0 && failedSubcategories.length < total) {
-          await pSleep(1500);
-          for (const item of failedSubcategories) {
-            const filterUrl = `https://instamart.in/api/instamart/category-listing/filter/v2?storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
-            const body = {
+          return pages;
+        };
+
+        const filterUrl = `${baseOrigin}/api/instamart/category-listing/filter/v2?storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}&pageNo=0&offset=0&page_name=category_listing_filter`;
+        const searchUrl = `${baseOrigin}/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
+
+        const subPages = await runBatchWithRetry(
+          opt.subcategories || [],
+          (item) => ({
+            url: filterUrl,
+            body: {
               categoryName: item.category,
               filterName: item.name,
               filterId: item.id,
@@ -458,84 +511,21 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
               items_offset: '0',
               facets: [],
               sortAttribute: 'discountPercentHighToLow'
-            };
-            try {
-              const fRes = await fetch(filterUrl, {
-                method: 'POST',
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
-                body: JSON.stringify(body),
-                credentials: 'include'
-              });
-              const fJson = await fRes.json().catch(() => null);
-              if (fRes.status === 200 && fJson?.data) {
-                fJson._meta = {
-                  category: item.category,
-                  subCategory: item.name,
-                  dealType: opt.dealType || 'essential',
-                  threshold: item.minDiscount || item.threshold,
-                  minDiscount: item.minDiscount || item.threshold
-                };
-                rawPages.push(fJson);
-              }
-            } catch (e) {}
-            await pSleep(400 + Math.random() * 200);
-          }
-        }
-
-        const searchKeywords = opt.searchKeywords || [];
-        const failedKeywords = [];
-        for (let k = 0; k < searchKeywords.length; k++) {
-          const kw = searchKeywords[k];
-          const queryStr = typeof kw === 'string' ? kw : kw.query;
-          const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
-          let facets = [];
-          if (typeof kw === 'object' && kw !== null) {
-            if (Array.isArray(kw.facets)) {
-              facets = kw.facets;
-            } else if (Array.isArray(kw.types) && kw.types.length > 0) {
-              facets = [{ id: 'type', facet_info: kw.types.map((t) => ({ value: t })) }];
+            },
+            meta: {
+              category: item.category,
+              subCategory: item.name,
+              dealType: opt.dealType || 'essential',
+              threshold: item.minDiscount || item.threshold,
+              minDiscount: item.minDiscount || item.threshold
             }
-          }
-          const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
-          const searchBody = {
-            facets,
-            sortAttribute: 'discountPercentHighToLow',
-            query: queryStr,
-            search_results_offset: '0',
-            page_type: 'INSTAMART_SEARCH_PAGE',
-            is_pre_search_tag: false
-          };
+          }),
+          true
+        );
 
-          try {
-            const sRes = await fetch(searchUrl, {
-              method: 'POST',
-              headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
-              body: JSON.stringify(searchBody),
-              credentials: 'include'
-            });
-            const sJson = await sRes.json().catch(() => null);
-            if (sRes.status === 200 && sJson?.data) {
-              sJson._meta = {
-                dealType: opt.dealType || 'essential',
-                query: queryStr,
-                threshold: kwThreshold,
-                minDiscount: kwThreshold
-              };
-              rawPages.push(sJson);
-            } else {
-              failedKeywords.push(kw);
-            }
-          } catch (e) {
-            failedKeywords.push(kw);
-          }
-
-          await pSleep(200 + Math.random() * 100);
-        }
-
-        // Pass 2: Retry throttled keywords after a short cooldown
-        if (failedKeywords.length > 0 && failedKeywords.length < searchKeywords.length) {
-          await pSleep(1200);
-          for (const kw of failedKeywords) {
+        const kwPages = await runBatchWithRetry(
+          opt.searchKeywords || [],
+          (kw) => {
             const queryStr = typeof kw === 'string' ? kw : kw.query;
             const kwThreshold = typeof kw === 'object' ? (kw.minDiscount || kw.threshold) : null;
             let facets = [];
@@ -546,38 +536,28 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
                 facets = [{ id: 'type', facet_info: kw.types.map((t) => ({ value: t })) }];
               }
             }
-            const searchUrl = `https://instamart.in/api/instamart/search/v2?offset=0&ageConsent=false&voiceSearchTrackingId=&storeId=${sid}&primaryStoreId=${pid}&secondaryStoreId=${secid}`;
-            const searchBody = {
-              facets,
-              sortAttribute: 'discountPercentHighToLow',
-              query: queryStr,
-              search_results_offset: '0',
-              page_type: 'INSTAMART_SEARCH_PAGE',
-              is_pre_search_tag: false
-            };
-            try {
-              const sRes = await fetch(searchUrl, {
-                method: 'POST',
-                headers: { 'accept': '*/*', 'content-type': 'application/json', 'matcher': makeMatcher(), 'x-build-version': '2.393.0' },
-                body: JSON.stringify(searchBody),
-                credentials: 'include'
-              });
-              const sJson = await sRes.json().catch(() => null);
-              if (sRes.status === 200 && sJson?.data) {
-                sJson._meta = {
-                  dealType: opt.dealType || 'essential',
-                  query: queryStr,
-                  threshold: kwThreshold,
-                  minDiscount: kwThreshold
-                };
-                rawPages.push(sJson);
+            return {
+              url: searchUrl,
+              body: {
+                facets,
+                sortAttribute: 'discountPercentHighToLow',
+                query: queryStr,
+                search_results_offset: '0',
+                page_type: 'INSTAMART_SEARCH_PAGE',
+                is_pre_search_tag: false
+              },
+              meta: {
+                dealType: opt.dealType || 'essential',
+                query: queryStr,
+                threshold: kwThreshold,
+                minDiscount: kwThreshold
               }
-            } catch (e) {}
-            await pSleep(400 + Math.random() * 200);
-          }
-        }
+            };
+          },
+          false
+        );
 
-        return { rawPages };
+        return { rawPages: [...subPages, ...kwPages], stats, origin: baseOrigin };
       }
 
       if (m === 'keywords') {
@@ -680,6 +660,33 @@ async function scrapeWithBrowser(mode, storeConfig, options = {}) {
       dealType: options.dealType,
       onProgress: !!options.onProgress
     });
+
+    const logBrowserStats = (data, label) => {
+      if (!data?.stats) return;
+      const statuses = data.stats.statuses || {};
+      const hasNon200 = Object.keys(statuses).some((k) => k !== '200');
+      if ((data.rawPages || []).length === 0 || hasNon200 || data.stats.empty200 > 0) {
+        console.warn(
+          `[SwiggyAPI] ${label} (${options.campaignName || mode}) | Origin: ${data.origin} | Pages: ${(data.rawPages || []).length} | Statuses: ${JSON.stringify(statuses)}` +
+          (data.stats.empty200 ? ` | Empty200: ${data.stats.empty200}` : '') +
+          (data.stats.lastError ? ` | LastErr: ${data.stats.lastError}` : '')
+        );
+      }
+    };
+
+    let scrapedData = await evaluateScrape();
+    logBrowserStats(scrapedData, 'Browser scrape');
+
+    if (mode === 'aisles' && (scrapedData.rawPages || []).length === 0) {
+      console.warn(`[SwiggyAPI] 0 pages scraped for ${options.campaignName || mode}; refreshing session and retrying once...`);
+      await sleep(4000);
+      await page.goto('https://instamart.in', { waitUntil: 'domcontentloaded', timeout: 35000 }).catch((e) => {
+        console.warn(`[SwiggyAPI] Recovery navigation warning (${mode}):`, e.message);
+      });
+      await sleep(5500);
+      scrapedData = await evaluateScrape();
+      logBrowserStats(scrapedData, 'Browser recovery scrape');
+    }
 
     const resultMap = new Map();
     for (const pageJson of scrapedData.rawPages || []) {
